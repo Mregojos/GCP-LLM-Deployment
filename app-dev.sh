@@ -5,6 +5,7 @@ cd app-dev
 # Directory
 # cd app-deployment
 
+DB_HOST=$(gcloud compute instances list --filter="name=$DB_INSTANCE_NAME" --format="value(networkInterfaces[0].accessConfigs[0].natIP)") 
 # Environment Variables for the app
 echo """DB_NAME=$DB_USER
 DB_USER=$DB_USER 
