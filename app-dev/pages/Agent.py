@@ -117,7 +117,7 @@ def sections(con, cur):
                 credential = True
                 st.write(f":violet[Your chat will be stored in a database. Use the same name to see your past conversations.]")
                 st.caption(":warning: :red[Do not add sensitive data.]")
-                model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code'))
+                model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code', 'Multi-Modal'))
                 input_name = st.text_input("Your Name")
                 # agent = st.toggle("**Let's go**")
                 save = st.button("Save")
