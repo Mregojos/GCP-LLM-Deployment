@@ -15,6 +15,7 @@
 source environment-variables.sh
 # Build infrastructure and deploy the app
 sh infrastructure-automation.sh
+# sh app-dev.sh
 
 # Cleanup
 # Export Variables
