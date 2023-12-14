@@ -1,1 +1,1 @@
-# GCP-LLM-Deployment
+# GCP Multi-Modal Large Language Model Deployment
