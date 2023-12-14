@@ -1,7 +1,7 @@
 #---------Application Name Environment Variables----------#
 # In production, change these values.
 export VERSION="i"
-export APP_NAME="mm-llm-$VERSION" # Mult-Modal Large Language Model (MM-LLM) or Multi-Modal Model (MMM)
+export APP_NAME="mmm-$VERSION" # Mult-Modal Large Language Model (MM-LLM) or Multi-Modal Model (MMM)
 export DB_PASSWORD="password"
 export ADMIN_PASSWORD="password"
 export SPECIAL_NAME="guest"
@@ -24,7 +24,7 @@ export FIREWALL_RULES_NAME="$APP_NAME-ports"
 export STATIC_IP_ADDRESS_NAME="$APP_NAME-db-static-ip-address"
 export BUCKET_NAME="$APP_NAME-startup-script"
 export STARTUP_SCRIPT_BUCKET_SA="$APP_NAME-bucket-sa"
-export STARTUP_SCRIPT_BUCKET_CUSTOM_ROLE="mmLLMBucketCustomRole.$VERSION"
+export STARTUP_SCRIPT_BUCKET_CUSTOM_ROLE="mmmBucketCustomRole.$VERSION"
 # export STARTUP_SCRIPT_NAME="$APP_NAME-startup-script.sh"
 
 # For Notebook 
@@ -51,7 +51,7 @@ export REGION="us-west1"
 export APP_ARTIFACT_NAME="$APP_NAME-artifact-registry"
 export APP_VERSION="latest"
 export APP_SERVICE_ACCOUNT_NAME="$APP_NAME-app-sa"
-export APP_CUSTOM_ROLE="mmLLMCustomRole.$VERSION"
+export APP_CUSTOM_ROLE="mmmCustomRole.$VERSION"
 export APP_PORT=9000
 export APP_ENV_FILE=".env.yaml"
 export MIN_INSTANCES=1
