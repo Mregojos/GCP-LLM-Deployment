@@ -11,8 +11,15 @@
 * GCP Project Owner Role
 
 ```sh
+# Export Variables
 source environment-variables.sh
+# Build infrastructure and deploy the app
 sh infrastructure-automation.sh
+
+# Cleanup
+# Export Variables
+source environment-variables.sh
+sh cleanup.sh
 ```
 
 ---
