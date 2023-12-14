@@ -49,6 +49,16 @@ def connection():
 
 #----------Models----------#
 def models():
+    #----------Gemini Pro---------------#
+    mm_config = {
+        "max_output_tokens": 2048,
+        "temperature": 0.9,
+        "top_p": 1
+    }
+    mm_model = GenerativeModel("gemini-pro")
+    mm_chat = mm_model.start_chat()
+    # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
+    
     #----------Vertex AI Chat----------#
     chat_parameters = {
         "candidate_count": 1,
@@ -73,17 +83,8 @@ def models():
         context=f"""I am an agent for Matt."""
     )
     
-    #----------Gemini Pro---------------#
-    mm_config = {
-        "max_output_tokens": 2048,
-        "temperature": 0.9,
-        "top_p": 1
-    }
-    mm_model = GenerativeModel("gemini-pro")
-    mm_chat = mm_model.start_chat()
-    # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
 
-    return chat, chat_parameters, code_chat, code_parameters, mm_config, mm_chat
+    return mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters
 
 def sections(con, cur):
     credential = False 
@@ -117,7 +118,7 @@ def sections(con, cur):
                 credential = True
                 st.write(f":violet[Your chat will be stored in a database. Use the same name to see your past conversations.]")
                 st.caption(":warning: :red[Do not add sensitive data.]")
-                model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code', 'Multi-Modal'))
+                model = st.selectbox("Choose Chat or Code Generation?", ('Multi-Modal', 'Chat', 'Code'))
                 input_name = st.text_input("Your Name")
                 # agent = st.toggle("**Let's go**")
                 save = st.button("Save")
@@ -184,7 +185,7 @@ def sections(con, cur):
             st.write("You will be Agent's :blue[guest].")
             st.write(f":violet[Your chat will be stored in a database. Use the same name to see your past conversations.]")
             st.caption(":warning: :red[Do not add sensitive data.]")
-            model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code', 'Multi-Modal'))
+            model = st.selectbox("Choose Chat or Code Generation?", ('Multi-Modal', 'Chat', 'Code'))
             input_name = st.text_input("Your Name")
             # agent = st.toggle("**Let's go**")
             save = st.button("Save")
@@ -246,7 +247,29 @@ def sections(con, cur):
                 current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
                 if prompt_user:
                     count_prompt = 1
-                    if model == "Chat":
+                    if model == "Multi-Modal":
+                        try:
+                            current_model = "Multi-Modal"
+                            cur.execute(f"""
+                                    SELECT * 
+                                    FROM chats
+                                    WHERE name='{input_name}'
+                                    ORDER BY time ASC
+                                    """)
+                            for id, name, prompt, output, model, time in cur.fetchall():
+                                prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                            if response != " ":
+                                output = response.text
+                            elif response == "" or response == None:
+                                output = "Oh snap. Could your repeat the prompt?"
+                            else:
+                                output = "Oh snap. Could your repeat the prompt?"
+                        except:
+                            output = "I didn't catch that. Could your repeat the prompt?"
+                            
+                    elif model == "Chat":
                         try:
                             current_model = "Chat"
                             cur.execute(f"""
@@ -291,27 +314,7 @@ def sections(con, cur):
                         except:
                             output = "I didn't catch that. Could your repeat the prompt?"
                             
-                    elif model == "Multi-Modal":
-                        try:
-                            current_model = "Multi-Modal"
-                            cur.execute(f"""
-                                    SELECT * 
-                                    FROM chats
-                                    WHERE name='{input_name}'
-                                    ORDER BY time ASC
-                                    """)
-                            for id, name, prompt, output, model, time in cur.fetchall():
-                                prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                            if response != " ":
-                                output = response.text
-                            elif response == "" or response == None:
-                                output = "Oh snap. Could your repeat the prompt?"
-                            else:
-                                output = "Oh snap. Could your repeat the prompt?"
-                        except:
-                            output = "I didn't catch that. Could your repeat the prompt?"
+
 
                     ### Insert into a table
                     SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
@@ -373,7 +376,29 @@ def sections(con, cur):
                 current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
                 if prompt_user:
                     count_prompt = 1
-                    if model == "Chat":
+                    if model == "Multi-Modal":
+                        try:
+                            current_model = "Multi-Modal"
+                            cur.execute(f"""
+                                    SELECT * 
+                                    FROM chats
+                                    WHERE name='{input_name}'
+                                    ORDER BY time ASC
+                                    """)
+                            for id, name, prompt, output, model, time in cur.fetchall():
+                                prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                            if response != " ":
+                                output = response.text
+                            elif response == "" or response == None:
+                                output = "Oh snap. Could your repeat the prompt?"
+                            else:
+                                output = "Oh snap. Could your repeat the prompt?"
+                        except:
+                            output = "I didn't catch that. Could your repeat the prompt?"
+                            
+                    elif model == "Chat":
                         try:
                             current_model = "Chat"
                             cur.execute(f"""
@@ -418,28 +443,6 @@ def sections(con, cur):
                         except:
                             output = "I didn't catch that. Could your repeat the prompt?"
                             
-                    elif model == "Multi-Modal":
-                        try:
-                            current_model = "Multi-Modal"
-                            cur.execute(f"""
-                                    SELECT * 
-                                    FROM chats
-                                    WHERE name='{input_name}'
-                                    ORDER BY time ASC
-                                    """)
-                            for id, name, prompt, output, model, time in cur.fetchall():
-                                prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                            if response != " ":
-                                output = response.text
-                            elif response == "" or response == None:
-                                output = "Oh snap. Could your repeat the prompt?"
-                            else:
-                                output = "Oh snap. Could your repeat the prompt?"
-                        except:
-                            output = "I didn't catch that. Could your repeat the prompt?"
-
                     ### Insert into a database
                     SQL = "INSERT INTO guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
                     data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
