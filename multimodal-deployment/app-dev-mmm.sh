@@ -1,6 +1,6 @@
 #----------Enable Artifact Registry, Cloud Build, and Cloud Run, Vertex AI----------#
 # Directory
-cd app-dev
+cd app-mmm-dev
 
 # Directory
 # cd app-deployment
