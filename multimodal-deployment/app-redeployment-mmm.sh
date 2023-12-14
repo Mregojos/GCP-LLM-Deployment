@@ -1,5 +1,5 @@
 # Directory
-cd app
+cd app-mmm
 
 #----------Build and Run only----------#
 # build and submnit an image to Artifact Registry
