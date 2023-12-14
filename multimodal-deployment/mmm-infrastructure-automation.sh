@@ -4,7 +4,7 @@ gcloud services enable compute.googleapis.com iam.googleapis.com cloudbuild.goog
 echo "\n #----------Services have been successfully enabled.----------# \n"
 
 # Directory
-cd app
+cd app-mmm
 
 #----------Database Instance Section----------#
 # Create a Custom VPC
