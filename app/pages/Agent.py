@@ -507,7 +507,7 @@ if __name__ == '__main__':
     try:
         # Connection
         con, cur = connection()
-        chat, chat_parameters, code_chat, code_parameters, mm_config, mm_chat = models()
+        mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
         sections(con, cur)
         # Close Connection
         cur.close()
