@@ -6,10 +6,11 @@
 
 ## Instructions
 ```sh
-source mmm-env*
-sh mmm-infra*
-sh app-mmm-dev.sh
+source env*
+sh infra*
+sh app-dev-mmm.sh
 
 # Cleanup
-source mmm-env*
-sh mmm-cleanup.sh
+source env*
+sh cleanup-mmm.sh
+```
