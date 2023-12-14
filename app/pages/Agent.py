@@ -6,6 +6,7 @@ import time as t
 import vertexai
 from vertexai.language_models import ChatModel, InputOutputTextPair
 from vertexai.language_models import CodeChatModel
+from vertexai.preview.generative_models import GenerativeModel, Part
 
 #----------Database Credentials----------# 
 DB_NAME=os.getenv("DB_NAME") 
@@ -72,7 +73,17 @@ def models():
         context=f"""I am an agent for Matt."""
     )
     
-    return chat, chat_parameters, code_chat, code_parameters
+    #----------Gemini Pro---------------#
+    mm_config = {
+        "max_output_tokens": 2048,
+        "temperature": 0.9,
+        "top_p": 1
+    }
+    mm_model = GenerativeModel("gemini-pro")
+    mm_chat = mm_model.start_chat()
+    # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
+
+    return chat, chat_parameters, code_chat, code_parameters, mm_config, mm_chat
 
 def sections(con, cur):
     credential = False 
@@ -173,7 +184,7 @@ def sections(con, cur):
             st.write("You will be Agent's :blue[guest].")
             st.write(f":violet[Your chat will be stored in a database. Use the same name to see your past conversations.]")
             st.caption(":warning: :red[Do not add sensitive data.]")
-            model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code'))
+            model = st.selectbox("Choose Chat or Code Generation?", ('Chat', 'Code', 'Multi-Modal'))
             input_name = st.text_input("Your Name")
             # agent = st.toggle("**Let's go**")
             save = st.button("Save")
@@ -271,6 +282,28 @@ def sections(con, cur):
                                 prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
                             response = code_chat.send_message(prompt_history, **code_parameters)
                             response = code_chat.send_message(prompt_user, **code_parameters)
+                            if response != " ":
+                                output = response.text
+                            elif response == "" or response == None:
+                                output = "Oh snap. Could your repeat the prompt?"
+                            else:
+                                output = "Oh snap. Could your repeat the prompt?"
+                        except:
+                            output = "I didn't catch that. Could your repeat the prompt?"
+                            
+                    elif model == "Multi-Modal":
+                        try:
+                            current_model = "Multi-Modal"
+                            cur.execute(f"""
+                                    SELECT * 
+                                    FROM chats
+                                    WHERE name='{input_name}'
+                                    ORDER BY time ASC
+                                    """)
+                            for id, name, prompt, output, model, time in cur.fetchall():
+                                prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                             if response != " ":
                                 output = response.text
                             elif response == "" or response == None:
@@ -449,7 +482,7 @@ if __name__ == '__main__':
     try:
         # Connection
         con, cur = connection()
-        chat, chat_parameters, code_chat, code_parameters = models()
+        chat, chat_parameters, code_chat, code_parameters, mm_config, mm_chat = models()
         sections(con, cur)
         # Close Connection
         cur.close()
