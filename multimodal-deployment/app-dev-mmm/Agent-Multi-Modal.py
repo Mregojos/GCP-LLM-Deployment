@@ -7,6 +7,8 @@ import vertexai
 from vertexai.language_models import ChatModel, InputOutputTextPair
 from vertexai.language_models import CodeChatModel
 from vertexai.preview.generative_models import GenerativeModel, Part
+import base64
+from vertexai.preview.generative_models import GenerativeModel, Part
 
 #----------Database Credentials----------# 
 DB_NAME=os.getenv("DB_NAME") 
@@ -62,6 +64,15 @@ def models():
     mm_chat = mm_model.start_chat()
     # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
     
+    #----------Gemini Pro Vision---------------#
+    multimodal_model = GenerativeModel("gemini-pro-vision")
+    multimodal_generation_config = {
+        "max_output_tokens": 2048,
+        "temperature": 0.4,
+        "top_p": 1,
+        "top_k": 32
+    }
+    
     #----------Vertex AI Chat----------#
     chat_parameters = {
         "candidate_count": 1,
@@ -87,7 +98,7 @@ def models():
     )
     
 
-    return mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters
+    return mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters
 
 
 def sections_i(con, cur):
@@ -511,6 +522,8 @@ def sections_ii(con, cur):
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
         prompt_user = st.text_area("Prompt")
+        if prompt_user == "":
+            prompt_user = "What is the image? Tell me more about the image."
         model = st.selectbox("Choose Chat Model or Multi-Modal", ("Chat Model", "Multi-Modal Model"))
         if model == "Multi-Modal Model":
             uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
@@ -518,7 +531,10 @@ def sections_ii(con, cur):
                 image_data = uploaded_file.read()
                 image_name = uploaded_file.name
                 st.image(image_data, image_name)
-                
+                image_data_base = base64.b64encode(image_data)
+                # st.write(image_data_base)
+                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
+                                       
         button = st.button("Send")
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
         prompt_history = "You are an intelligent Agent."
@@ -560,6 +576,7 @@ def sections_ii(con, cur):
             elif model == "Multi-Modal Model":
                 start_time = t.time() 
                 current_model = "Multi-Modal Model"
+                responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
             
         prune = st.button(":red[Prune History]")
         if prune:
@@ -589,6 +606,10 @@ def sections_ii(con, cur):
             message = st.chat_message("assistant")
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+    
+    elif model == "Multi-Modal Model" and button:
+        st.image(image_data, image_name)
+        st.write(responses.text)
 
 #----------Execution----------#
 if __name__ == '__main__':
@@ -597,7 +618,7 @@ if __name__ == '__main__':
         version_ii = st.checkbox("Version Two")
     # Connection
     con, cur = connection()
-    mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
+    mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
     if version_i and version_ii:
         st.info("Choose only one")
     elif version_i:
@@ -620,3 +641,4 @@ if __name__ == '__main__':
                     > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
                     ---
                     """)
+
