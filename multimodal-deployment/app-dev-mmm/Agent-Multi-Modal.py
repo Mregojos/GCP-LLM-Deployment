@@ -101,7 +101,7 @@ def models():
     return mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters
 
 
-def sections_i(con, cur):
+def version_i(con, cur):
     credential = False 
     agent = False
     #----------Agent----------#
@@ -517,15 +517,15 @@ def sections_i(con, cur):
     return credential, agent
 
 
-def sections_ii(con, cur):
+def version_ii(con, cur):
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
         prompt_user = st.text_area("Prompt")
         if prompt_user == "":
             prompt_user = "What is the image? Tell me more about the image."
-        model = st.selectbox("Choose Chat Model or Multi-Modal", ("Chat Model", "Multi-Modal Model"))
-        if model == "Multi-Modal Model":
+        model = st.selectbox("Choose Chat Model or Vision Model", ("Chat Model", "Vision Model"))
+        if model == "Vision Model":
             uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
             if uploaded_file is not None:
                 image_data = uploaded_file.read()
@@ -542,6 +542,7 @@ def sections_ii(con, cur):
         round_number = 2
         if button:
             if model == "Chat Model":
+                current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
                 start_time = t.time() 
                 current_model = "Chat Model"
                 cur.execute(f"""
@@ -573,11 +574,13 @@ def sections_ii(con, cur):
                 cur.execute(SQL, data)
                 con.commit()
             
-            elif model == "Multi-Modal Model":
+            elif model == "Vision Model":
+                current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
                 start_time = t.time() 
                 current_model = "Multi-Modal Model"
                 responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-
+                end_time = t.time()
+                
         prune = st.button(":red[Prune History]")
         if prune:
             cur.execute(f"""
@@ -607,25 +610,27 @@ def sections_ii(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
     
-    elif model == "Multi-Modal Model" and button:
+    elif model == "Vision Model" and button:
         message = st.chat_message("assistant")
         message.image(image_data)
         message.markdown(responses.text)
+        message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
 #----------Execution----------#
 if __name__ == '__main__':
     with st.sidebar:
-        version_i = st.checkbox("Version One")
-        version_ii = st.checkbox("Version Two")
+        version_i_ = st.checkbox("Version One")
+        version_ii_ = st.checkbox("Version Two")
     # Connection
     con, cur = connection()
     mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
-    if version_i and version_ii:
-        st.info("Choose only one")
-    elif version_i:
-        sections_i(con, cur)
-    elif version_ii:
-        sections_ii(con, cur)
+    if version_i_ and version_ii_:
+        with st.sidebar:
+            st.info("Choose only one")
+    elif version_i_:
+        version_i(con, cur)
+    elif version_ii_:
+        version_ii(con, cur)
 
     # Close Connection
     cur.close()
