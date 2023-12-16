@@ -40,6 +40,8 @@ def connection():
     cur = con.cursor()
     # Create a table if not exists
     cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar)")
+    # cur.execute("DROP TABLE chats_mmm")
+    cur.execute("CREATE TABLE IF NOT EXISTS chats_mmm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
     # cur.execute("DROP TABLE total_prompts")
@@ -512,11 +514,11 @@ def sections_ii(con, cur):
         button = st.button("Send")
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
         prompt_history = "You are an intelligent Agent."
-
+        count_prompt = 1
+        round_number = 2
         if button:
-            count_prompt = 1
             if model == "Multi-Modal":
-                # start_time 
+                start_time = t.time() 
                 current_model = "Multi-Modal"
                 cur.execute(f"""
                         SELECT * 
@@ -534,12 +536,11 @@ def sections_ii(con, cur):
                     output = "Oh snap. Could your repeat the prompt?"
                 else:
                     output = "Oh snap. Could your repeat the prompt?"
-
-
+                end_time = t.time()
 
                 ### Insert into a table
-                SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time)
+                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time)
                 cur.execute(SQL, data)
                 con.commit()
                 ### Insert into a table (total_prompts)
@@ -547,11 +548,12 @@ def sections_ii(con, cur):
                 data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
                 cur.execute(SQL, data)
                 con.commit()
+                
         prune = st.button(":red[Prune History]")
         if prune:
             cur.execute(f"""
                         DELETE  
-                        FROM chats
+                        FROM chats_mmm
                         WHERE name='{input_name}'
                         """)
             con.commit()
@@ -561,18 +563,18 @@ def sections_ii(con, cur):
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
     cur.execute(f"""
     SELECT * 
-    FROM chats
+    FROM chats_mmm
     WHERE name='{input_name}'
     ORDER BY time ASC
     """)
-    for id, name, prompt, output, model, time in cur.fetchall():
+    for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
         message = st.chat_message("user")
         message.write(f":blue[{name}]") 
         message.text(f"{prompt}")
         message.caption(f"{time}")
         message = st.chat_message("assistant")
         message.markdown(output)
-        message.caption(f"{time} | Model: {model}")    
+        message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
 #----------Execution----------#
 if __name__ == '__main__':
