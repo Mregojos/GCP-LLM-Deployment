@@ -510,8 +510,15 @@ def sections_ii(con, cur):
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
-        prompt_user = st.text_area("Prompt:")
-        model = st.selectbox("Choose Chat Model or Multi-Modal?", ("Chat Model", "Multi-Modal Model"))
+        prompt_user = st.text_area("Prompt")
+        model = st.selectbox("Choose Chat Model or Multi-Modal", ("Chat Model", "Multi-Modal Model"))
+        if model == "Multi-Modal Model":
+            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+            if uploaded_file is not None:
+                image_data = uploaded_file.read()
+                image_name = uploaded_file.name
+                st.image(image_data, image_name)
+                
         button = st.button("Send")
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
         prompt_history = "You are an intelligent Agent."
@@ -550,8 +557,9 @@ def sections_ii(con, cur):
                 cur.execute(SQL, data)
                 con.commit()
                 
-            elif model == "Multi-Modal Model":
-                pass
+
+                
+                
                 
         prune = st.button(":red[Prune History]")
         if prune:
@@ -585,8 +593,6 @@ if __name__ == '__main__':
     with st.sidebar:
         version_i = st.checkbox("Version One")
         version_ii = st.checkbox("Version Two")
-    # try:
-    st.divider()
     # Connection
     con, cur = connection()
     mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
