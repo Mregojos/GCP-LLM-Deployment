@@ -555,6 +555,7 @@ def version_ii(con, cur):
         button = st.button("Send")
         count_prompt = 1
         round_number = 2
+        
         if button:
             if model == "Chat Model":
                 start_time = t.time() 
@@ -598,40 +599,43 @@ def version_ii(con, cur):
                     end_time = t.time()
 
             elif model == "Vision with DB Model":
-                start_time = t.time() 
-                current_model = "Multi-Modal Model"
-                cur.execute(f"""
-                        SELECT * 
-                        FROM chats_multimodal
-                        WHERE name='{input_name}'
-                        ORDER BY time ASC
-                        """)
-                for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
-                    if saved_image_data_base_string is not None:
-                        image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                        image_data_base = base64.b64encode(image_data_base_string_data)
-                        saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
-                        responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
-                    else:
-                        responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
-                if uploaded_file is not None:
-                    responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                    end_time = t.time()
-                    output = responses.text
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string)
-                    cur.execute(SQL, data)
-                    con.commit()
+                if uploaded_file is None:
+                    st.info("Upload file first")
                 else:
-                    responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                    end_time = t.time()
-                    output = responses.text
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time)
-                    cur.execute(SQL, data)
-                    con.commit()
+                    start_time = t.time() 
+                    current_model = "Multi-Modal Model"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM chats_multimodal
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
+                        if saved_image_data_base_string is not None:
+                            image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                            image_data_base = base64.b64encode(image_data_base_string_data)
+                            saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
+                            responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                        else:
+                            responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
+                    if uploaded_file is not None:
+                        responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                        end_time = t.time()
+                        output = responses.text
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string)
+                        cur.execute(SQL, data)
+                        con.commit()
+                    else:
+                        responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
+                        end_time = t.time()
+                        output = responses.text
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
                 
                 
         prune = st.button(":red[Prune History]")
