@@ -556,11 +556,11 @@ def sections_ii(con, cur):
                 data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
                 cur.execute(SQL, data)
                 con.commit()
-                
-
-                
-                
-                
+            
+            elif model == "Multi-Modal Model":
+                start_time = t.time() 
+                current_model = "Multi-Modal Model"
+            
         prune = st.button(":red[Prune History]")
         if prune:
             cur.execute(f"""
@@ -573,20 +573,22 @@ def sections_ii(con, cur):
 
       
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
-    cur.execute(f"""
-    SELECT * 
-    FROM chats_mmm
-    WHERE name='{input_name}'
-    ORDER BY time ASC
-    """)
-    for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
-        message = st.chat_message("user")
-        message.write(f":blue[{name}]") 
-        message.text(f"{prompt}")
-        message.caption(f"{time}")
-        message = st.chat_message("assistant")
-        message.markdown(output)
-        message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+    
+    if model == "Chat Model":
+        cur.execute(f"""
+        SELECT * 
+        FROM chats_mmm
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+            message = st.chat_message("user")
+            message.write(f":blue[{name}]") 
+            message.text(f"{prompt}")
+            message.caption(f"{time}")
+            message = st.chat_message("assistant")
+            message.markdown(output)
+            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
 #----------Execution----------#
 if __name__ == '__main__':
