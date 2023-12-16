@@ -44,8 +44,8 @@ def connection():
     cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar)")
     # cur.execute("DROP TABLE chats_mmm")
     cur.execute("CREATE TABLE IF NOT EXISTS chats_mmm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float)")
-    # cur.execute("DROP TABLE chats_multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS chats_multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
+    # cur.execute("DROP TABLE vision_db")
+    cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
     # cur.execute("DROP TABLE total_prompts")
@@ -523,7 +523,7 @@ def version_ii(con, cur):
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
-        model = st.selectbox("Choose Chat Model, Vision Model or Multi-Modal Model", ("Chat Model", "Vision Model", "Vision with DB Model"))
+        model = st.selectbox("Choose Chat Model, Vision Model or Multi-Modal Model", ("Chat Model", "Vision Model", "Vision with DB Model", "Multi-Modal Model"))
         prompt_user = st.text_area("Prompt")
         if model == "Vision Model":
             if prompt_user == "":
@@ -603,10 +603,10 @@ def version_ii(con, cur):
                     st.info("Upload file first")
                 else:
                     start_time = t.time() 
-                    current_model = "Multi-Modal Model"
+                    current_model = "Vision with DB Model"
                     cur.execute(f"""
                             SELECT * 
-                            FROM chats_multimodal
+                            FROM vision_db
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)
@@ -623,7 +623,7 @@ def version_ii(con, cur):
                         end_time = t.time()
                         output = responses.text
                         ### Insert into a table
-                        SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string)
                         cur.execute(SQL, data)
                         con.commit()
@@ -632,7 +632,7 @@ def version_ii(con, cur):
                         end_time = t.time()
                         output = responses.text
                         ### Insert into a table
-                        SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time)
                         cur.execute(SQL, data)
                         con.commit()
@@ -648,7 +648,7 @@ def version_ii(con, cur):
             con.commit()
             cur.execute(f"""
                         DELETE  
-                        FROM chats_multimodal
+                        FROM vision_db
                         WHERE name='{input_name}'
                         """)
             con.commit()
@@ -686,7 +686,7 @@ def version_ii(con, cur):
     elif model == "Vision with DB Model":
         cur.execute(f"""
         SELECT * 
-        FROM chats_multimodal
+        FROM vision_db
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
