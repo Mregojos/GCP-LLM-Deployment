@@ -45,7 +45,7 @@ def connection():
     # cur.execute("DROP TABLE chats_mmm")
     cur.execute("CREATE TABLE IF NOT EXISTS chats_mmm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float)")
     # cur.execute("DROP TABLE chats_multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS chats_multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data varchar, image_data_base varchar)")
+    cur.execute("CREATE TABLE IF NOT EXISTS chats_multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
     # cur.execute("DROP TABLE total_prompts")
@@ -543,7 +543,9 @@ def version_ii(con, cur):
                 image_name = uploaded_file.name
                 st.image(image_data, image_name)
                 image_data_base = base64.b64encode(image_data)
-                # st.write(image_data_base)
+                image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                # st.image(image_data_base_string_data)
                 image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."    
@@ -608,8 +610,8 @@ def version_ii(con, cur):
                 end_time = t.time()
 
                 ### Insert into a table
-                SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data, image_data_base) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data, image_data_base)
+                SQL = "INSERT INTO chats_multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string)
                 cur.execute(SQL, data)
                 con.commit()
                 
@@ -662,9 +664,10 @@ def version_ii(con, cur):
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
-        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data, image_data_base in cur.fetchall():
+        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
             message = st.chat_message("assistant")
-            # message.image(saved_image_data)
+            image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+            message.image(image_data_base_string_data)
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
