@@ -609,7 +609,7 @@ def sections_ii(con, cur):
     
     elif model == "Multi-Modal Model" and button:
         message = st.chat_message("assistant")
-        message.image(image_data, image_name)
+        message.image(image_data)
         message.markdown(responses.text)
 
 #----------Execution----------#
