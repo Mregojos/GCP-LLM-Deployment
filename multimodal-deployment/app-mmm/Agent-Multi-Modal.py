@@ -508,18 +508,19 @@ def sections_i(con, cur):
 
 def sections_ii(con, cur):
     with st.sidebar:
-        input_name = st.text_input("Your Name")
+        default_name = "Matt"
+        input_name = st.text_input("Name", default_name)
         prompt_user = st.text_area("Prompt:")
-        model = st.selectbox("Choose Chat or Code Generation?", (["Multi-Modal"]))
+        model = st.selectbox("Choose Chat Model or Multi-Modal?", ("Chat Model", "Multi-Modal Model"))
         button = st.button("Send")
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
         prompt_history = "You are an intelligent Agent."
         count_prompt = 1
         round_number = 2
         if button:
-            if model == "Multi-Modal":
+            if model == "Chat Model":
                 start_time = t.time() 
-                current_model = "Multi-Modal"
+                current_model = "Chat Model"
                 cur.execute(f"""
                         SELECT * 
                         FROM chats
@@ -548,6 +549,9 @@ def sections_ii(con, cur):
                 data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
                 cur.execute(SQL, data)
                 con.commit()
+                
+            elif model == "Multi-Modal Model":
+                pass
                 
         prune = st.button(":red[Prune History]")
         if prune:
