@@ -579,18 +579,20 @@ def sections_ii(con, cur):
 #----------Execution----------#
 if __name__ == '__main__':
     with st.sidebar:
-        version_i = st.checkbox("Version Chat Input")
+        version_i = st.checkbox("Version One")
         version_ii = st.checkbox("Version Two")
-        st.divider()
     # try:
     st.divider()
     # Connection
     con, cur = connection()
     mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
-    if version_i:
+    if version_i and version_ii:
+        st.info("Choose only one")
+    elif version_i:
         sections_i(con, cur)
-    if version_ii:
+    elif version_ii:
         sections_ii(con, cur)
+
     # Close Connection
     cur.close()
     con.close()
