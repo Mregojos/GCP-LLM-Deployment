@@ -25,7 +25,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    page_icon=":cloud:")
 
 # Title
-st.write("#### Pre-Trained Language Model Deployment ")
+st.write("#### Multi-Modal Model Deployment ")
 
 #----------Connect to a database----------# 
 def connection():
