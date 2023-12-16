@@ -61,7 +61,7 @@ def models():
     #----------Gemini Pro---------------#
     mm_config = {
         "max_output_tokens": 2048,
-        "temperature": 0.9,
+        "temperature": 0.2,
         "top_p": 1
     }
     mm_model = GenerativeModel("gemini-pro")
@@ -72,7 +72,7 @@ def models():
     multimodal_model = GenerativeModel("gemini-pro-vision")
     multimodal_generation_config = {
         "max_output_tokens": 2048,
-        "temperature": 0.4,
+        "temperature": 0.2,
         "top_p": 1,
         "top_k": 32
     }
@@ -663,7 +663,17 @@ def version_ii(con, cur):
                         ORDER BY time ASC
                         """)
                 for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string in cur.fetchall():
-                    prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                    prompt_history = f"""
+                                     \n {prompt_history} 
+                                     \n ------------
+                                     \n Conversion ID: {id}
+                                     \n {name}: {prompt} 
+                                     \n Model Output: {output}
+                                     \n Total Characters: 
+                                     \n ------------
+                                     \n
+                                      """
+                st.write(prompt_history)
                 response = mm_chat.send_message(prompt_history, generation_config=mm_config)
                 if uploaded_file is not None:
                     response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
