@@ -577,7 +577,7 @@ def sections_ii(con, cur):
                 start_time = t.time() 
                 current_model = "Multi-Modal Model"
                 responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-            
+
         prune = st.button(":red[Prune History]")
         if prune:
             cur.execute(f"""
@@ -608,8 +608,9 @@ def sections_ii(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
     
     elif model == "Multi-Modal Model" and button:
-        st.image(image_data, image_name)
-        st.write(responses.text)
+        message = st.chat_message("assistant")
+        message.image(image_data, image_name)
+        message.markdown(responses.text)
 
 #----------Execution----------#
 if __name__ == '__main__':
