@@ -22,7 +22,8 @@ vertexai.init(project=PROJECT_NAME, location="us-central1")
 
 #----------Page Configuration----------# 
 st.set_page_config(page_title="Matt Cloud Tech",
-                   page_icon=":cloud:")
+                   page_icon=":cloud:",
+                   layout="wide")
 
 # Title
 st.write("#### Multi-Modal Model Deployment ")
@@ -86,7 +87,8 @@ def models():
 
     return mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters
 
-def sections(con, cur):
+
+def sections_i(con, cur):
     credential = False 
     agent = False
     #----------Agent----------#
@@ -500,20 +502,98 @@ def sections(con, cur):
     con.close()
     
     return credential, agent
-        
-        
+
+
+def sections_ii(con, cur):
+    with st.sidebar:
+        input_name = st.text_input("Your Name")
+        prompt_user = st.text_area("Prompt:")
+        model = st.selectbox("Choose Chat or Code Generation?", (["Multi-Modal"]))
+        button = st.button("Send")
+        current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        prompt_history = "You are an intelligent Agent."
+
+        if button:
+            count_prompt = 1
+            if model == "Multi-Modal":
+                # start_time 
+                current_model = "Multi-Modal"
+                cur.execute(f"""
+                        SELECT * 
+                        FROM chats
+                        WHERE name='{input_name}'
+                        ORDER BY time ASC
+                        """)
+                for id, name, prompt, output, model, time in cur.fetchall():
+                    prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                if response != " ":
+                    output = response.text
+                elif response == "" or response == None:
+                    output = "Oh snap. Could your repeat the prompt?"
+                else:
+                    output = "Oh snap. Could your repeat the prompt?"
+
+
+
+                ### Insert into a table
+                SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time)
+                cur.execute(SQL, data)
+                con.commit()
+                ### Insert into a table (total_prompts)
+                SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
+                cur.execute(SQL, data)
+                con.commit()
+        prune = st.button(":red[Prune History]")
+        if prune:
+            cur.execute(f"""
+                        DELETE  
+                        FROM chats
+                        WHERE name='{input_name}'
+                        """)
+            con.commit()
+            st.info(f"History by {input_name} is successfully deleted.")
+
+      
+    st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
+    cur.execute(f"""
+    SELECT * 
+    FROM chats
+    WHERE name='{input_name}'
+    ORDER BY time ASC
+    """)
+    for id, name, prompt, output, model, time in cur.fetchall():
+        message = st.chat_message("user")
+        message.write(f":blue[{name}]") 
+        message.text(f"{prompt}")
+        message.caption(f"{time}")
+        message = st.chat_message("assistant")
+        message.markdown(output)
+        message.caption(f"{time} | Model: {model}")    
+
 #----------Execution----------#
 if __name__ == '__main__':
-    try:
-        # Connection
-        con, cur = connection()
-        mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
-        sections(con, cur)
-        # Close Connection
-        cur.close()
-        con.close()
-    except:
-        st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
+    with st.sidebar:
+        version_i = st.checkbox("Version Chat Input")
+        version_ii = st.checkbox("Version Two")
+        st.divider()
+    # try:
+    st.divider()
+    # Connection
+    con, cur = connection()
+    mm_config, mm_chat, chat, chat_parameters, code_chat, code_parameters  = models()
+    if version_i:
+        sections_i(con, cur)
+    if version_ii:
+        sections_ii(con, cur)
+    # Close Connection
+    cur.close()
+    con.close()
+    # except:
+        # st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
         
     #----------Footer----------#
     #----------Sidebar Footer----------#
