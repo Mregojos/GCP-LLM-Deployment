@@ -571,8 +571,7 @@ def version_ii(con, cur):
         prompt_history = "You are an intelligent Agent."
         button = st.button("Send")
         count_prompt = 1
-        round_number = 2
-        
+        round_number = 2    
         if button:
             if model == "Chat Model":
                 start_time = t.time() 
@@ -605,7 +604,7 @@ def version_ii(con, cur):
                 data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
                 cur.execute(SQL, data)
                 con.commit()
-            
+    
             elif model == "Vision Model":
                 if uploaded_file is None:
                     st.info("Upload file first")
@@ -673,7 +672,6 @@ def version_ii(con, cur):
                                      \n ------------
                                      \n
                                       """
-                st.write(prompt_history)
                 response = mm_chat.send_message(prompt_history, generation_config=mm_config)
                 if uploaded_file is not None:
                     response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
@@ -710,6 +708,7 @@ def version_ii(con, cur):
                         FROM multimodal
                         WHERE name='{input_name}'
                         """)
+            con.commit()
             con.commit()
             st.info(f"History by {input_name} is successfully deleted.")
             
