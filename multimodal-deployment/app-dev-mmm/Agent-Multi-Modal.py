@@ -525,7 +525,7 @@ def version_ii(con, cur):
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
-        model = st.selectbox("Choose Chat, Vision, Vision with DB, or Multi-Modal Model", ("Chat Model", "Vision Model", "Vision with DB Model", "Multi-Modal Model"))
+        model = st.selectbox("Choose Chat, Vision, Vision with DB, or Multi-Modal Model", ("Multi-Modal Model", "Chat Model", "Vision Model", "Vision with DB Model"))
         prompt_user = st.text_area("Prompt")
         if model == "Vision Model":
             if prompt_user == "":
@@ -772,13 +772,13 @@ def version_ii(con, cur):
                 message.caption(f"{time}")
                 message = st.chat_message("assistant")
                 message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Characters: {total_characters}" )
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )
             else:
                 message.text(f"{prompt}")
                 message.caption(f"{time}")
                 message = st.chat_message("assistant")
                 message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Characters: {total_characters}")
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
                 
 #----------Execution----------#
 if __name__ == '__main__':
