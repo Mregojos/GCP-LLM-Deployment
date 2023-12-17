@@ -47,7 +47,7 @@ def connection():
     # cur.execute("DROP TABLE vision_db")
     cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     # cur.execute("DROP TABLE multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar)")
+    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
     # cur.execute("DROP TABLE total_prompts")
@@ -662,14 +662,14 @@ def version_ii(con, cur):
                         WHERE name='{input_name}'
                         ORDER BY time ASC
                         """)
-                for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string in cur.fetchall():
+                for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
                     prompt_history = f"""
                                      \n {prompt_history} 
                                      \n ------------
                                      \n Conversion ID: {id}
                                      \n {name}: {prompt} 
                                      \n Model Output: {output}
-                                     \n Total Characters: 
+                                     \n Total Characters: {total_characters}
                                      \n ------------
                                      \n
                                       """
@@ -678,14 +678,16 @@ def version_ii(con, cur):
                 if uploaded_file is not None:
                     response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
                     output = response.text
+                    characters = len(prompt_history)
                     end_time = t.time() 
                 else:
                     response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                     output = response.text
+                    characters = len(prompt_history)
                     end_time = t.time() 
                 ### Insert into a table
-                SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string)
+                SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, start_time, end_time, image_data_base_string, characters)
                 cur.execute(SQL, data)
                 con.commit()
                 
@@ -761,7 +763,7 @@ def version_ii(con, cur):
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
-        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string in cur.fetchall():
+        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
             if saved_image_data_base_string is not None:
@@ -771,13 +773,13 @@ def version_ii(con, cur):
                 message.caption(f"{time}")
                 message = st.chat_message("assistant")
                 message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Characters: {total_characters}" )
             else:
                 message.text(f"{prompt}")
                 message.caption(f"{time}")
                 message = st.chat_message("assistant")
                 message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Characters: {total_characters}")
                 
 #----------Execution----------#
 if __name__ == '__main__':
