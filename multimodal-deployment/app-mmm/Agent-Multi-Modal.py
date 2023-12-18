@@ -808,7 +808,7 @@ def version_iii(con, cur):
                     responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
                     current_image_detail = responses.text
                 else:
-                    image_data_base_string = None
+                    image_data_base_string = ""
             video = st.checkbox("Add a video")
             if video:
                 pass
@@ -905,13 +905,7 @@ if __name__ == '__main__':
     # Connection
     con, cur = connection()
     mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
-    if version_i_ and version_ii_:
-        with st.sidebar:
-            st.info("Choose only one")
-    elif version_ii_ and version_iii_:
-        with st.sidebar:
-            st.info("Choose only one")
-    elif version_i_ and version_ii_ and version_iii:
+    if (version_i_ and version_ii_) or (version_ii_ and version_iii_) or (version_i_ and version_iii_) or (version_i_ and version_ii_ and version_iii):
         with st.sidebar:
             st.info("Choose only one")
     elif version_i_:
