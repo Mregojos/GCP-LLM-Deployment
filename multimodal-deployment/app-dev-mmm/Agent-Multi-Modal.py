@@ -861,6 +861,11 @@ def version_iii(con, cur):
                     con.commit()
             except:
                 output = "Sorry about that. Please prompt it again."
+            # Print out expection
+            # except Exception as e:
+            #    with st.sidebar:
+            #        st.write(f"Exception: {e}")
+            #    output = "Sorry about that. Please prompt it again."
 
         prune = st.button(":red[Prune History]")
         if prune:
@@ -897,7 +902,80 @@ def version_iii(con, cur):
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
 
+def version_iv(con, cur):
+    st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
+    with st.sidebar:
+        default_name = "Matt"
+        input_name = st.text_input("Name", default_name)
+        model = st.selectbox("Chat", (["Chat Model"]))
+        prompt_user = st.text_area("Prompt")
+        current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        prompt_history = "You are an intelligent Agent."
+        button = st.button("Send")
+        count_prompt = 1
+        round_number = 2    
+        if button:
+            if model == "Chat Model":
+                current_start_time = t.time() 
+                current_model = "Chat Model"
+                cur.execute(f"""
+                        SELECT * 
+                        FROM chats_mmm
+                        WHERE name='{input_name}'
+                        ORDER BY time ASC
+                        """)
+                for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+                    response = mm_chat.send_message(prompt, generation_config=mm_config)
+                response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                output = response.text
+                end_time = t.time()
 
+                ### Insert into a table
+                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                cur.execute(SQL, data)
+                con.commit()
+                ### Insert into a table (total_prompts)
+                SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
+                cur.execute(SQL, data)
+                con.commit()
+
+        prune = st.button(":red[Prune History]")
+        if prune:
+            cur.execute(f"""
+                        DELETE  
+                        FROM chats_mmm
+                        WHERE name='{input_name}'
+                        """)
+            cur.execute(f"""
+                        DELETE  
+                        FROM vision_db
+                        WHERE name='{input_name}'
+                        """)
+            cur.execute(f"""
+                        DELETE  
+                        FROM multimodal
+                        WHERE name='{input_name}'
+                        """)
+            con.commit()
+            st.info(f"History by {input_name} is successfully deleted.")
+
+    if model == "Chat Model":
+        cur.execute(f"""
+        SELECT * 
+        FROM chats_mmm
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+            message = st.chat_message("user")
+            message.write(f":blue[{name}]") 
+            message.text(f"{prompt}")
+            message.caption(f"{time}")
+            message = st.chat_message("assistant")
+            message.markdown(output)
+            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
             
 #----------Execution----------#
 if __name__ == '__main__':
@@ -905,6 +983,7 @@ if __name__ == '__main__':
         version_i_ = st.checkbox("Version One")
         version_ii_ = st.checkbox("Version Two")
         version_iii_ = st.checkbox("Version Three")
+        version_iv_ = st.checkbox("Version Four")
     # Connection
     con, cur = connection()
     mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
@@ -917,6 +996,9 @@ if __name__ == '__main__':
         version_ii(con, cur)
     elif version_iii_:
         version_iii(con, cur)
+    elif version_iv_:
+        version_iv(con, cur)
+
 
     # Close Connection
     cur.close()
