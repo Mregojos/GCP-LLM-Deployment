@@ -844,21 +844,24 @@ def version_iii(con, cur):
                     output = response.text
                     characters = len(prompt_history)
                     end_time = t.time() 
+                    ### Insert into a table
+                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                    cur.execute(SQL, data)
+                    con.commit()
                 else:
                     response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                     output = response.text
                     characters = len(prompt_history)
                     end_time = t.time() 
+                    ### Insert into a table
+                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                    cur.execute(SQL, data)
+                    con.commit()
             except:
                 output = "Sorry about that. Please prompt it again."
-                characters = len(prompt_history)
-                end_time = t.time() 
-            ### Insert into a table
-            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
-            cur.execute(SQL, data)
-            con.commit()
-            
+
         prune = st.button(":red[Prune History]")
         if prune:
             cur.execute(f"""
