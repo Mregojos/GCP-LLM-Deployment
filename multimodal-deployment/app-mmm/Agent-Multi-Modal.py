@@ -843,7 +843,7 @@ def version_iii(con, cur):
                     response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
                     output = response.text
                     characters = len(prompt_history)
-                    e
+                    end_time = t.time() 
                 else:
                     response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                     output = response.text
