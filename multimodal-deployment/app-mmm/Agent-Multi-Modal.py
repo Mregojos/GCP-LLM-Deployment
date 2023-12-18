@@ -979,32 +979,38 @@ def version_iv(con, cur):
             
 #----------Execution----------#
 if __name__ == '__main__':
-    with st.sidebar:
-        version_i_ = st.checkbox("Version One")
-        version_ii_ = st.checkbox("Version Two")
-        version_iii_ = st.checkbox("Version Three")
-        version_iv_ = st.checkbox("Version Four")
     # Connection
-    con, cur = connection()
-    mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
-    if (version_i_ and version_ii_) or (version_ii_ and version_iii_) or (version_i_ and version_iii_) or (version_i_ and version_ii_ and version_iii):
+    con = False
+    try:
+        con, cur = connection()
+        con = True
+    except:
+        st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
+    if con == True:
         with st.sidebar:
-            st.info("Choose only one")
-    elif version_i_:
-        version_i(con, cur)
-    elif version_ii_:
-        version_ii(con, cur)
-    elif version_iii_:
-        version_iii(con, cur)
-    elif version_iv_:
-        version_iv(con, cur)
+            version_i_ = st.checkbox("Version One")
+            version_ii_ = st.checkbox("Version Two")
+            version_iii_ = st.checkbox("Version Three")
+            version_iv_ = st.checkbox("Version Four")
+        # Connection
+        con, cur = connection()
+        mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
+        if (version_i_ and version_ii_) or (version_ii_ and version_iii_) or (version_i_ and version_iii_) or (version_i_ and version_ii_ and version_iii):
+            with st.sidebar:
+                st.info("Choose only one")
+        elif version_i_:
+            version_i(con, cur)
+        elif version_ii_:
+            version_ii(con, cur)
+        elif version_iii_:
+            version_iii(con, cur)
+        elif version_iv_:
+            version_iv(con, cur)         
 
 
-    # Close Connection
-    cur.close()
-    con.close()
-    # except:
-        # st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
+        # Close Connection
+        cur.close()
+        con.close()
         
     #----------Footer----------#
     #----------Sidebar Footer----------#
