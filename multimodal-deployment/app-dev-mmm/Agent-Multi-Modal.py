@@ -1087,6 +1087,8 @@ def version_v(con, cur):
 def version_vi(con, cur):
     # Mulit-Modal Model Only
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
+    total_prompt = 0
+    button = False
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
@@ -1116,10 +1118,22 @@ def version_vi(con, cur):
             if video:
                 pass
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        limited_prompt = "Chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
         prompt_history = "You are an intelligent Agent."
         count_prompt = 1
-        round_number = 2    
-        button = st.button("Send")
+        round_number = 2
+        cur.execute(f"""
+            SELECT COUNT(*) 
+            FROM multimodal
+            WHERE name='{input_name}'
+            """)
+        total_prompt =cur.fetchone()[0]
+        if total_prompt <= 4:
+            if total_prompt < 4: 
+                button = True
+                button = st.button("Send")
+            elif total_prompt > 4:
+                button = False
         if button:
             current_start_time = t.time() 
             current_model = "Multi-Modal"
@@ -1153,7 +1167,7 @@ def version_vi(con, cur):
                     cur.execute(SQL, data)
                     con.commit()
             except Exception as e:
-                st.write(f"Exception: {e}")
+                # st.write(f"Exception: {e}")
                 output = "Sorry about that. Please prompt it again."
                 characters = len(prompt_user)
                 end_time = t.time() 
@@ -1177,9 +1191,10 @@ def version_vi(con, cur):
                         """)
             con.commit()
             st.info(f"History by {input_name} is successfully deleted.")
-        st.info("Chat History is limited to five prompts only.") 
+        st.info(limited_prompt) 
             
     if model == "Multi-Modal Model" or model == "Multi-Modal":
+
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -1189,28 +1204,28 @@ def version_vi(con, cur):
         for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
-            if saved_image_data_base_string is not "":
-                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                message.image(image_data_base_string_data)
-                message.text(f"{prompt}")
-                message.caption(f"{time}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )
-            else:
-                message.text(f"{prompt}")
-                message.caption(f"{time}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
-    cur.execute(f"""
-        SELECT COUNT(*) 
-        FROM multimodal
-        WHERE name='{input_name}'
-        """)
-    total_prompt = cur.fetchone()[0]
-    if total_prompt == 0:
-        st.write(total_prompt, "Cleared ")
+            if total_prompt <= 4:
+                if saved_image_data_base_string is not "":
+                    image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                    message.image(image_data_base_string_data)
+                    message.text(f"{prompt}")
+                    message.caption(f"{time}")
+                    message = st.chat_message("assistant")
+                    message.markdown(output)
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )
+                    if total_prompt == 4:
+                        st.info(limited_prompt)
+                        
+                else:
+                    message.text(f"{prompt}")
+                    message.caption(f"{time}")
+                    message = st.chat_message("assistant")
+                    message.markdown(output)
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
+                    if total_prompt == 4:
+                        st.info(limited_prompt)
+
+
             
 #----------Execution----------#
 if __name__ == '__main__':
