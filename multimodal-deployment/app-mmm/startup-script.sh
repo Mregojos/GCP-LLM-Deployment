@@ -1,7 +1,7 @@
 # Environment
 # TO DO: In production, change the values to be more secure. 
-export VERSION="i"
-export APP_NAME="mm-llm-i"
+export VERSION="iii"
+export APP_NAME="mmm-iii"
 export DB_PASSWORD="password"
 
 export DB_CONTAINER_NAME="$APP_NAME-sql"

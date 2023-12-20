@@ -6,8 +6,11 @@
 
 ## Instructions
 ```sh
+# Infra
 source env*
 sh infra*
+# Dev
+source env*
 sh app-dev-mmm.sh
 
 # Cleanup
