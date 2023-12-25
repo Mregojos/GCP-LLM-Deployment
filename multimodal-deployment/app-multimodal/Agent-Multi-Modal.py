@@ -28,7 +28,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    layout="wide")
 
 # Title
-st.write("#### Multi-Modal Model Deployment ")
+st.write("#### Multimodal Model Deployment ")
 
 #----------Connect to a database----------# 
 def connection():
@@ -524,54 +524,56 @@ def llm(con, cur):
 
 def multimodal(con, cur):
     # Multimodal, Chat, Multimodal with Database, Vision (One Turn), Vision with DB, Chat with DB
-    # st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
     total_prompt = 0
     button = False
     model = ""
+    #------------------ Admin --------------------------#
     with st.sidebar:
-        #------------------ Admin --------------------------#
         if GUEST == False:
             input_name = st.text_input("Name", default_name)
 
-        #------------------ Guest Counter ------------------#
-        if GUEST == True:
-            input_name = default_name
-        LIMIT = 5
-        time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-        time_date = time[0:15]
-        cur.execute(f"""
-                SELECT SUM(count_prompt)
-                FROM multimodal_guest_chats
-                WHERE time LIKE '{time_date}%'
-                """)
-        for total in cur.fetchone():
-            if total is None:
-               total_count = 0
-            else:
-                total_count = total
-                # st.write(total_count)
+    #------------------ Guest Counter ------------------#
+    if GUEST == True:
+        input_name = default_name
+    LIMIT = 5
+    time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+    time_date = time[0:15]
+    cur.execute(f"""
+            SELECT SUM(count_prompt)
+            FROM multimodal_guest_chats
+            WHERE time LIKE '{time_date}%'
+            """)
+    for total in cur.fetchone():
+        if total is None:
+            total_count = 0
+        else:
+            total_count = total
+            # st.write(total_count)
+    if GUEST == False or (GUEST == True and total_count < LIMIT):
+        st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
         
+    with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One Turn)", "Vision with DB", "Chat with DB"]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Chat", "Multimodal with DB", "Vision (One Turn)", "Vision with DB", "Chat with DB"]))
             prompt_user = st.text_area("Prompt")
             uploaded_file = None
             current_image_detail = ""
             image_data_base_string = ""
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-            limited_prompt = "For Multi-Modal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
+            limited_prompt = "For Multimodal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
             prompt_history = "You are an intelligent Agent."
             count_prompt = 1
             round_number = 2
         
         #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
-            st.info("Guest limit has reached!")
+            st.info("Guest daily limit has reached!")
 
         #------------------ Multimodal Chats --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
             #-------------------Multi-Modal---------------------#
-            if model == "Multi-Modal":
+            if model == "Multimodal":
                 image = st.checkbox("Add a photo")
                 if image:
                     uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
@@ -606,7 +608,7 @@ def multimodal(con, cur):
                         button = False
                 if button:
                     current_start_time = t.time() 
-                    current_model = "Multi-Modal"
+                    current_model = "Multimodal"
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal
@@ -702,7 +704,7 @@ def multimodal(con, cur):
                     st.info(f"History by {input_name} is successfully deleted.")
 
             #-------------------Multi-Modal with DB---------------------#
-            if model == "Multi-Modal with DB":
+            if model == "Multimodal with DB":
                 uploaded_file = None
                 current_image_detail = ""
                 image_data_base_string = ""
@@ -733,7 +735,7 @@ def multimodal(con, cur):
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
-                    current_model = "Multi-Modal"
+                    current_model = "Multimodal with DB"
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal
@@ -809,7 +811,7 @@ def multimodal(con, cur):
                         st.info("Upload file first")
                     else:
                         start_time = t.time() 
-                        current_model = "Multi-Modal Model"
+                        current_model = "Vision (One Turn)"
                         responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
                         end_time = t.time()
 
@@ -935,7 +937,7 @@ def multimodal(con, cur):
 
     #-------------------Conversations---------------------#
     #-------------------Multimodal---------------------#
-    if model == "Multi-Modal Model" or model == "Multi-Modal":
+    if model == "Multimodal Model" or model == "Multimodal":
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -979,7 +981,7 @@ def multimodal(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Multi-Modal with DB---------------------#
-    if model == "Multi-Modal with DB" or model == "Multi-Modal with DB":
+    if model == "Multimodal with DB" or model == "Multimodal with DB":
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -1092,10 +1094,10 @@ if __name__ == '__main__':
                     default_name = "Admin"
                     GUEST = False
                     guest_limit = False
-                    multimodal(con, cur)
-                else: 
+                    multimodal(con, cur)        
+                elif password != ADMIN_PASSWORD and agent:
                     with st.sidebar:
-                        st.info("Wrong Credentials")
+                        st.info("Wrong Password")
                     
             elif guest:
                 default_name = "Guest"
