@@ -48,6 +48,7 @@ def connection():
     cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     # cur.execute("DROP TABLE multimodal")
     cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int)")
+    cur.execute("CREATE TABLE IF NOT EXISTS multimodal_guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
     # cur.execute("DROP TABLE total_prompts")
@@ -527,7 +528,6 @@ def multimodal(con, cur):
     total_prompt = 0
     button = False
     with st.sidebar:
-        default_name = "Guest"
         input_name = st.text_input("Name", default_name)
         model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One-Shot)", "Vision with DB", "Chat with DB"]))
         prompt_user = st.text_area("Prompt")
@@ -540,6 +540,31 @@ def multimodal(con, cur):
         count_prompt = 1
         round_number = 2
         
+        #------------------For Multimodal Guest Limits-----------------------#
+        # if guest_limit == True:
+        #    ### Insert into a database
+        #    output = ""
+        #    SQL = "INSERT INTO guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+        #    data = (input_name, prompt_user, output, model, current_time, count_prompt)
+        #    cur.execute(SQL, data)
+        #    con.commit()
+            # Guest Counter
+        #    LIMIT = 5
+        #    time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        #    time_date = time[0:15]
+        #    cur.execute(f"""
+        #            SELECT SUM(count_prompt)
+        #            FROM multimodal_guest_chats
+        #            WHERE time LIKE '{time_date}%'
+        #            """)
+        #    for total in cur.fetchone():
+        #        if total is None:
+        #           total_count = 0
+        #        else:
+        #            total_count = total
+        #            st.write(total_count)
+            
+     
         #-------------------Multi-Modal---------------------#
         if model == "Multi-Modal":
             image = st.checkbox("Add a photo")
@@ -558,9 +583,9 @@ def multimodal(con, cur):
                     current_image_detail = responses.text
                 else:
                     image_data_base_string = ""
-            video = st.checkbox("Add a video")
-            if video:
-                pass
+            # video = st.checkbox("Add a video")
+            # if video:
+            #     pass
 
             cur.execute(f"""
                 SELECT COUNT(*) 
@@ -1026,8 +1051,30 @@ if __name__ == '__main__':
         elif llm_:
             llm(con, cur)
         elif multimodal_:
-            multimodal(con, cur)
-            
+            with st.sidebar:
+                st.divider()
+                st.write("Login or Continue as a guest")
+                login = st.checkbox("Login")
+                guest = st.checkbox("Continue as a guest")
+            if login and guest:
+                with st.sidebar:
+                    st.info("Choose only one")
+            elif login:
+                with st.sidebar:
+                    password = st.text_input("Password", type="password")
+                    agent = st.toggle("**:violet[Start the conversation]**")
+                if password == ADMIN_PASSWORD and agent:
+                    default_name = "Matt"
+                    multimodal(con, cur)
+                else:
+                    with st.sidebar:
+                        st.info("Wrong Credentials")
+                    
+            # elif guest:
+            #    guest_limit = True
+            #    default_name = "Guest"
+            #    multimodal(con, cur)
+                
         # Close Connection
         cur.close()
         con.close()
