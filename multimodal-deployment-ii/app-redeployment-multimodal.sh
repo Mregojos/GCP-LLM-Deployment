@@ -1,5 +1,5 @@
 # Directory
-cd app-mmm
+cd app-multimodal
 
 #----------Build and Run only----------#
 # build and submnit an image to Artifact Registry

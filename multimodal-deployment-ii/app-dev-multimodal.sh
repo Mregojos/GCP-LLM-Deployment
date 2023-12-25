@@ -1,6 +1,6 @@
 #----------Enable Artifact Registry, Cloud Build, and Cloud Run, Vertex AI----------#
 # Directory
-cd app-dev-mmm
+cd app-dev-multimodal
 
 DB_HOST=$(gcloud compute instances list --filter="name=$DB_INSTANCE_NAME" --format="value(networkInterfaces[0].accessConfigs[0].natIP)") 
 # Environment Variables for the app
