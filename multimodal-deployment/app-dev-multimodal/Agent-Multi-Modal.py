@@ -524,6 +524,7 @@ def llm(con, cur):
 
 def multimodal(con, cur):
     #----------- Multimodal, Chat, Multimodal with Database, Vision (One Turn), Vision with DB, Chat with DB --------------#
+    #----------------- Variables ------------------------#
     total_prompt = 0
     button = False
     model = ""
@@ -565,8 +566,9 @@ def multimodal(con, cur):
             current_image_detail = ""
             image_data_base_string = ""
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-            limited_prompt = "For Multimodal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
+            limited_prompt = "For Multimodal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
             prompt_history = "You are an intelligent Agent."
+            total_prompt_limit = 4
             count_prompt = 1
             round_number = 2
         
@@ -604,11 +606,11 @@ def multimodal(con, cur):
                     WHERE name='{input_name}'
                     """)
                 total_prompt =cur.fetchone()[0]
-                if total_prompt <= 4:
-                    if total_prompt < 4: 
+                if total_prompt <= total_prompt_limit:
+                    if total_prompt < total_prompt_limit: 
                         button = True 
                         button = st.button("Send")
-                    elif total_prompt >= 4:
+                    elif total_prompt >= total_prompt_limit:
                         button = False
                 if button:
                     current_start_time = t.time() 
@@ -666,7 +668,8 @@ def multimodal(con, cur):
                                 """)
                     con.commit()
                     st.info(prompt_prune_info)
-                st.info(limited_prompt) 
+                if total_prompt == total_prompt_limit: 
+                    st.info(limited_prompt) 
 
             #-------------------Chat---------------------#
             if model == "Chat":
