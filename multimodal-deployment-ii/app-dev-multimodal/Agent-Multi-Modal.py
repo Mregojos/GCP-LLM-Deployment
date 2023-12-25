@@ -521,277 +521,15 @@ def version_i(con, cur):
     return credential, agent
 
 
-def version_ii(con, cur):
-    st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
-    with st.sidebar:
-        default_name = "Matt"
-        input_name = st.text_input("Name", default_name)
-        model = st.selectbox("Choose Chat, Vision, Vision with DB, or Multi-Modal Model", ("Multi-Modal Model", "Chat Model", "Vision Model", "Vision with DB Model"))
-        prompt_user = st.text_area("Prompt")
-        if model == "Vision Model":
-            if prompt_user == "":
-                prompt_user = "What is the image? Tell me more about the image."   
-            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-            if uploaded_file is not None:
-                image_data = uploaded_file.read()
-                image_name = uploaded_file.name
-                st.image(image_data, image_name)
-                image_data_base = base64.b64encode(image_data)
-                # st.write(image_data_base)
-                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")  
-        if model == "Vision with DB Model":
-            if prompt_user == "":
-                prompt_user = "What is the image? Tell me more about the image."  
-            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-            if uploaded_file is not None:
-                image_data = uploaded_file.read()
-                image_name = uploaded_file.name
-                st.image(image_data, image_name)
-                image_data_base = base64.b64encode(image_data)
-                image_data_base_string = base64.b64encode(image_data).decode("utf-8")
-                # image_data_base_string_data = base64.b64decode(image_data_base_string)
-                # st.image(image_data_base_string_data)
-                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
-        if model == "Multi-Modal Model":
-            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-            if uploaded_file is not None:
-                image_data = uploaded_file.read()
-                image_name = uploaded_file.name
-                st.image(image_data, image_name)
-                image_data_base = base64.b64encode(image_data)
-                image_data_base_string = base64.b64encode(image_data).decode("utf-8")
-                # image_data_base_string_data = base64.b64decode(image_data_base_string)
-                # st.image(image_data_base_string_data)
-                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
-                responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
-                current_image_detail = responses.text
-            else:
-                image_data_base_string = None
-            
-        current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-        prompt_history = "You are an intelligent Agent."
-        button = st.button("Send")
-        count_prompt = 1
-        round_number = 2    
-        if button:
-            if model == "Chat Model":
-                current_start_time = t.time() 
-                current_model = "Chat Model"
-                cur.execute(f"""
-                        SELECT * 
-                        FROM chats_mmm
-                        WHERE name='{input_name}'
-                        ORDER BY time ASC
-                        """)
-                for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
-                    prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                if response != " ":
-                    output = response.text
-                elif response == "" or response == None:
-                    output = "Oh snap. Could your repeat the prompt?"
-                else:
-                    output = "Oh snap. Could your repeat the prompt?"
-                end_time = t.time()
-
-                ### Insert into a table
-                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                cur.execute(SQL, data)
-                con.commit()
-                ### Insert into a table (total_prompts)
-                SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
-                cur.execute(SQL, data)
-                con.commit()
-    
-            elif model == "Vision Model":
-                if uploaded_file is None:
-                    st.info("Upload file first")
-                else:
-                    start_time = t.time() 
-                    current_model = "Multi-Modal Model"
-                    responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                    end_time = t.time()
-
-            elif model == "Vision with DB Model":
-                if uploaded_file is None:
-                    st.info("Upload file first")
-                else:
-                    current_start_time = t.time() 
-                    current_model = "Vision with DB Model"
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM vision_db
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)
-                    for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
-                        if saved_image_data_base_string is not None:
-                            image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                            image_data_base = base64.b64encode(image_data_base_string_data)
-                            saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
-                            responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
-                        else:
-                            responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
-                    if uploaded_file is not None:
-                        responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                        end_time = t.time()
-                        output = responses.text
-                        ### Insert into a table
-                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
-                        cur.execute(SQL, data)
-                        con.commit()
-                    else:
-                        responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                        end_time = t.time()
-                        output = responses.text
-                        ### Insert into a table
-                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                        cur.execute(SQL, data)
-                        con.commit()
-            elif model == "Multi-Modal Model":          
-                current_start_time = t.time() 
-                current_model = "Multi-Modal"
-                cur.execute(f"""
-                        SELECT * 
-                        FROM multimodal
-                        WHERE name='{input_name}'
-                        ORDER BY time ASC
-                        """)
-                try:
-                    for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
-                        prompt_history = f"""
-                                         \n {prompt_history} 
-                                         \n ------------
-                                         \n Conversion ID: {id}
-                                         \n {name}: {prompt} 
-                                         \n Model Output: {output}
-                                         \n Input Characters: {total_characters}
-                                         \n ------------
-                                         \n
-                                          """
-                    response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                    if uploaded_file is not None:
-                        response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
-                        output = response.text
-                        characters = len(prompt_history)
-                        end_time = t.time() 
-                    else:
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        output = response.text
-                        characters = len(prompt_history)
-                        end_time = t.time() 
-                except:
-                    output = "Sorry about that. Please prompt it again."
-                    characters = len(prompt_history)
-                    end_time = t.time() 
-                ### Insert into a table
-                SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
-                cur.execute(SQL, data)
-                con.commit()
-                        
-        prune = st.button(":red[Prune History]")
-        if prune:
-            cur.execute(f"""
-                        DELETE  
-                        FROM chats_mmm
-                        WHERE name='{input_name}'
-                        """)
-            cur.execute(f"""
-                        DELETE  
-                        FROM vision_db
-                        WHERE name='{input_name}'
-                        """)
-            cur.execute(f"""
-                        DELETE  
-                        FROM multimodal
-                        WHERE name='{input_name}'
-                        """)
-            con.commit()
-            st.info(f"History by {input_name} is successfully deleted.")
-
-    if model == "Chat Model":
-        cur.execute(f"""
-        SELECT * 
-        FROM chats_mmm
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
-            message = st.chat_message("user")
-            message.write(f":blue[{name}]") 
-            message.text(f"{prompt}")
-            message.caption(f"{time}")
-            message = st.chat_message("assistant")
-            message.markdown(output)
-            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
-    
-    elif model == "Vision Model" and button:
-        if uploaded_file is None:
-            pass
-        else:
-            message = st.chat_message("assistant")
-            message.image(image_data)
-            message.markdown(responses.text)
-            message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
-
-    elif model == "Vision with DB Model":
-        cur.execute(f"""
-        SELECT * 
-        FROM vision_db
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
-            message = st.chat_message("assistant")
-            if saved_image_data_base_string is not None:
-                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                message.image(image_data_base_string_data)
-            message.markdown(output)
-            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
-    elif model == "Multi-Modal Model" or model == "Multi-Modal":
-        cur.execute(f"""
-        SELECT * 
-        FROM multimodal
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
-            message = st.chat_message("user")
-            message.write(f":blue[{name}]") 
-            if saved_image_data_base_string is not None:
-                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                message.image(image_data_base_string_data)
-                message.text(f"{prompt}")
-                message.caption(f"{time}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )
-            else:
-                message.text(f"{prompt}")
-                message.caption(f"{time}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
-            
-
-            
-
-
 def version_vi(con, cur):
-    # Multimodal, Chat, Multimodal with Database, Vision (One-Shot), Vision with DB
+    # Multimodal, Chat, Multimodal with Database, Vision (One-Shot), Vision with DB, Chat with DB
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
     total_prompt = 0
     button = False
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
-        model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One-Shot)", "Vision with DB"]))
+        model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One-Shot)", "Vision with DB", "Chat with DB"]))
         prompt_user = st.text_area("Prompt")
         uploaded_file = None
         current_image_detail = ""
@@ -1066,7 +804,7 @@ def version_vi(con, cur):
                     st.info("Upload file first")
                 else:
                     current_start_time = t.time() 
-                    current_model = "Vision with DB Model"
+                    current_model = "Vision with DB"
                     cur.execute(f"""
                             SELECT * 
                             FROM vision_db
@@ -1104,6 +842,50 @@ def version_vi(con, cur):
                 cur.execute(f"""
                             DELETE  
                             FROM vision_db
+                            WHERE name='{input_name}'
+                            """)
+                con.commit()
+                st.info(f"History by {input_name} is successfully deleted.")
+        
+        #-------------------Chat with DB---------------------#
+        if model == "Chat with DB":
+            button = st.button("Send")
+            if button:
+                current_start_time = t.time() 
+                current_model = "Chat with DB"
+                cur.execute(f"""
+                        SELECT * 
+                        FROM chats_mmm
+                        WHERE name='{input_name}'
+                        ORDER BY time ASC
+                        """)
+                for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+                    prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                if response != " ":
+                    output = response.text
+                elif response == "" or response == None:
+                    output = "Oh snap. Could your repeat the prompt?"
+                else:
+                    output = "Oh snap. Could your repeat the prompt?"
+                end_time = t.time()
+
+                ### Insert into a table
+                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                cur.execute(SQL, data)
+                con.commit()
+                ### Insert into a table (total_prompts)
+                SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
+                cur.execute(SQL, data)
+                con.commit()
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute(f"""
+                            DELETE  
+                            FROM chats_mmm
                             WHERE name='{input_name}'
                             """)
                 con.commit()
@@ -1187,6 +969,39 @@ def version_vi(con, cur):
         message.image(image_data)
         message.markdown(responses.text)
         message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+        
+    #-------------------Vision with DB--------------------#
+    if model == "Vision with DB":
+        cur.execute(f"""
+        SELECT * 
+        FROM vision_db
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
+            message = st.chat_message("assistant")
+            if saved_image_data_base_string is not None:
+                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                message.image(image_data_base_string_data)
+            message.markdown(output)
+            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+    
+    #-------------------Chat with DB---------------------#
+    if model == "Chat with DB":
+        cur.execute(f"""
+        SELECT * 
+        FROM chats_mmm
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+            message = st.chat_message("user")
+            message.write(f":blue[{name}]") 
+            message.text(f"{prompt}")
+            message.caption(f"{time}")
+            message = st.chat_message("assistant")
+            message.markdown(output)
+            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
             
 #----------Execution----------#
 if __name__ == '__main__':
