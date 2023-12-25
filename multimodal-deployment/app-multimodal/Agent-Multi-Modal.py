@@ -529,12 +529,13 @@ def multimodal(con, cur):
     button = False
     model = ""
     with st.sidebar:
+        #------------------ Admin --------------------------#
         if GUEST == False:
             input_name = st.text_input("Name", default_name)
 
         #------------------ Guest Counter ------------------#
         if GUEST == True:
-            input_name = "Guest"
+            input_name = default_name
         LIMIT = 5
         time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
         time_date = time[0:15]
@@ -550,6 +551,7 @@ def multimodal(con, cur):
                 total_count = total
                 # st.write(total_count)
         
+        #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
             model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One Turn)", "Vision with DB", "Chat with DB"]))
             prompt_user = st.text_area("Prompt")
@@ -561,10 +563,12 @@ def multimodal(con, cur):
             prompt_history = "You are an intelligent Agent."
             count_prompt = 1
             round_number = 2
-
+        
+        #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
-            st.info("Limit reached.")
+            st.info("Guest limit has reached!")
 
+        #------------------ Multimodal Chats --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
             #-------------------Multi-Modal---------------------#
             if model == "Multi-Modal":
@@ -917,7 +921,7 @@ def multimodal(con, cur):
                     con.commit()
                     st.info(f"History by {input_name} is successfully deleted.")
                     
-        #----------Prunt Guest Limits using Admin---------#
+        #----------Prune Guest Limits using Admin---------#
         if (GUEST == False):
             prune_guest_limit = st.button(":red[Prune Guest History Limit]")
             if prune_guest_limit:
@@ -1001,7 +1005,7 @@ def multimodal(con, cur):
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
 
     #-------------------Vision---------------------#
-    if model == "Vision":
+    if model == "Vision" or model == "Vision (One Turn)":
         message = st.chat_message("assistant")
         message.image(image_data)
         message.markdown(responses.text)
@@ -1085,13 +1089,13 @@ if __name__ == '__main__':
                     password = st.text_input("Password", type="password")
                     agent = st.toggle("**:violet[Start the conversation]**")
                 if password == ADMIN_PASSWORD and agent:
-                    default_name = "Matt"
+                    default_name = "Admin"
                     GUEST = False
                     guest_limit = False
                     multimodal(con, cur)
-                # else: 
-                #    with st.sidebar:
-                #        st.info("Wrong Credentials")
+                else: 
+                    with st.sidebar:
+                        st.info("Wrong Credentials")
                     
             elif guest:
                 default_name = "Guest"
