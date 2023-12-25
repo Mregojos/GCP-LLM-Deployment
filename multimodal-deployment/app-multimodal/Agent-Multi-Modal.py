@@ -551,8 +551,17 @@ def multimodal(con, cur):
         else:
             total_count = total
             # st.write(total_count)
+    
+    #------------------ Info --------------------------#
     if GUEST == False or (GUEST == True and total_count < LIMIT):
-        st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
+        st.info("""
+                You can now start the conversation by prompting to the text bar. Enjoy. :smile: You can ask:
+                * What is Cloud Computing?
+                * What is Google Cloud?
+                * Compare Site Reliability Engineer and DevOps?
+                * Tell me about different Cloud Services
+                * Explain Cloud Computing in simple terms
+                """)
     
     #------------------ prompt_prune_info ------------------#
     prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
