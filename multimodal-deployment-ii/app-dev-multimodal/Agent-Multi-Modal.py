@@ -784,14 +784,14 @@ def version_ii(con, cur):
 
 
 def version_vi(con, cur):
-    # Multimodal, Chat, Multimodal with Database, Vision (One-Shot), Vision with Database
+    # Multimodal, Chat, Multimodal with Database, Vision (One-Shot), Vision with DB
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
     total_prompt = 0
     button = False
     with st.sidebar:
         default_name = "Matt"
         input_name = st.text_input("Name", default_name)
-        model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB"]))
+        model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One-Shot)", "Vision with DB"]))
         prompt_user = st.text_area("Prompt")
         uploaded_file = None
         current_image_detail = ""
@@ -1023,6 +1023,91 @@ def version_vi(con, cur):
                 con.commit()
                 st.info(f"History by {input_name} is successfully deleted.")
 
+        #-------------------Vision One Shot---------------------#
+        if model == "Vision" or model == "Vision (One-Shot)":
+            if prompt_user == "":
+                prompt_user = "What is the image? Tell me more about the image."   
+            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+            if uploaded_file is not None:
+                image_data = uploaded_file.read()
+                image_name = uploaded_file.name
+                st.image(image_data, image_name)
+                image_data_base = base64.b64encode(image_data)
+                # st.write(image_data_base)
+                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")  
+            button = st.button("Send")
+            if button:
+                if uploaded_file is None:
+                    st.info("Upload file first")
+                else:
+                    start_time = t.time() 
+                    current_model = "Multi-Modal Model"
+                    responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                    end_time = t.time()
+        
+
+        #-------------------Vision with DB--------------------#
+        if model == "Vision with DB":
+            if prompt_user == "":
+                prompt_user = "What is the image? Tell me more about the image."  
+            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+            if uploaded_file is not None:
+                image_data = uploaded_file.read()
+                image_name = uploaded_file.name
+                st.image(image_data, image_name)
+                image_data_base = base64.b64encode(image_data)
+                image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                # st.image(image_data_base_string_data)
+                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")            
+            button = st.button("Send")
+            if button:
+                if uploaded_file is None:
+                    st.info("Upload file first")
+                else:
+                    current_start_time = t.time() 
+                    current_model = "Vision with DB Model"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM vision_db
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
+                        if saved_image_data_base_string is not None:
+                            image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                            image_data_base = base64.b64encode(image_data_base_string_data)
+                            saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
+                            responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                        else:
+                            responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
+                    if uploaded_file is not None:
+                        responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                        end_time = t.time()
+                        output = responses.text
+                        ### Insert into a table
+                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
+                        cur.execute(SQL, data)
+                        con.commit()
+                    else:
+                        responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
+                        end_time = t.time()
+                        output = responses.text
+                        ### Insert into a table
+                        SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute(f"""
+                            DELETE  
+                            FROM vision_db
+                            WHERE name='{input_name}'
+                            """)
+                con.commit()
+                st.info(f"History by {input_name} is successfully deleted.")
 
     #-------------------Conversations---------------------#
     #-------------------Multimodal---------------------#
@@ -1095,6 +1180,13 @@ def version_vi(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
+    
+    #-------------------Vision---------------------#
+    if model == "Vision":
+        message = st.chat_message("assistant")
+        message.image(image_data)
+        message.markdown(responses.text)
+        message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
             
 #----------Execution----------#
 if __name__ == '__main__':
