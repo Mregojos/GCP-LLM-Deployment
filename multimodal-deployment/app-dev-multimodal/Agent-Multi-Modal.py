@@ -523,10 +523,11 @@ def llm(con, cur):
 
 
 def multimodal(con, cur):
-    # Multimodal, Chat, Multimodal with Database, Vision (One Turn), Vision with DB, Chat with DB
+    #----------- Multimodal, Chat, Multimodal with Database, Vision (One Turn), Vision with DB, Chat with DB --------------#
     total_prompt = 0
     button = False
     model = ""
+    
     #------------------ Admin --------------------------#
     with st.sidebar:
         if GUEST == False:
@@ -551,6 +552,9 @@ def multimodal(con, cur):
             # st.write(total_count)
     if GUEST == False or (GUEST == True and total_count < LIMIT):
         st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
+    
+    #------------------ prompt_prune_info ------------------#
+    prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
         
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
@@ -661,7 +665,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"History by {input_name} is successfully deleted.")
+                    st.info(prompt_prune_info)
                 st.info(limited_prompt) 
 
             #-------------------Chat---------------------#
@@ -701,7 +705,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"History by {input_name} is successfully deleted.")
+                    st.info(prompt_prune_info)
 
             #-------------------Multi-Modal with DB---------------------#
             if model == "Multimodal with DB":
@@ -791,7 +795,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"History by {input_name} is successfully deleted.")
+                    st.info(prompt_prune_info)
 
             #-------------------Vision One Turn---------------------#
             if model == "Vision" or model == "Vision (One Turn)":
@@ -877,7 +881,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"History by {input_name} is successfully deleted.")
+                    st.info(prompt_prune_info)
 
             #-------------------Chat with DB---------------------#
             if model == "Chat with DB":
@@ -1063,7 +1067,7 @@ if __name__ == '__main__':
         con, cur = connection()
         con = True
     except:
-        st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
+        st.info("##### :computer: ```DATABASE CONNECTION ERROR: The app can't connect to the database right now. Please try again later.```")
     if con == True:
         with st.sidebar:
             st.write("Choose LLM or Multimodal")
