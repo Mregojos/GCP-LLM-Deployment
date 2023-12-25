@@ -1132,7 +1132,7 @@ def version_vi(con, cur):
             if total_prompt < 4: 
                 button = True
                 button = st.button("Send")
-            elif total_prompt > 4:
+            elif total_prompt >= 4:
                 button = False
         if button:
             current_start_time = t.time() 
@@ -1212,19 +1212,15 @@ def version_vi(con, cur):
                     message.caption(f"{time}")
                     message = st.chat_message("assistant")
                     message.markdown(output)
-                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )
-                    if total_prompt == 4:
-                        st.info(limited_prompt)
-                        
-                else:
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )                 
+                elif saved_image_data_base_string is "":
                     message.text(f"{prompt}")
                     message.caption(f"{time}")
                     message = st.chat_message("assistant")
                     message.markdown(output)
                     message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
-                    if total_prompt == 4:
-                        st.info(limited_prompt)
-
+                elif total_prompt == 4:
+                    st.info(limited_prompt)
 
             
 #----------Execution----------#
