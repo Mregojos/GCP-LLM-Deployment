@@ -105,7 +105,7 @@ def models():
     return mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters
 
 
-def version_i(con, cur):
+def llm(con, cur):
     credential = False 
     agent = False
     #----------Agent----------#
@@ -521,13 +521,13 @@ def version_i(con, cur):
     return credential, agent
 
 
-def version_vi(con, cur):
+def multimodal(con, cur):
     # Multimodal, Chat, Multimodal with Database, Vision (One-Shot), Vision with DB, Chat with DB
     st.info("You can now start the conversation by prompting to the text bar. Enjoy. :smile:")
     total_prompt = 0
     button = False
     with st.sidebar:
-        default_name = "Matt"
+        default_name = "Guest"
         input_name = st.text_input("Name", default_name)
         model = st.selectbox("Choose Model", (["Multi-Modal", "Chat", "Multi-Modal with DB", "Vision (One-Shot)", "Vision with DB", "Chat with DB"]))
         prompt_user = st.text_area("Prompt")
@@ -535,7 +535,7 @@ def version_vi(con, cur):
         current_image_detail = ""
         image_data_base_string = ""
         current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-        limited_prompt = "Chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
+        limited_prompt = "For Multi-Modal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts."
         prompt_history = "You are an intelligent Agent."
         count_prompt = 1
         round_number = 2
@@ -1014,30 +1014,19 @@ if __name__ == '__main__':
         st.info("##### :computer: ```The app can't connect to the database right now. Please try again later.```")
     if con == True:
         with st.sidebar:
-            version_i_ = st.checkbox("Version One")
-            version_ii_ = st.checkbox("Version Two")
-            version_iii_ = st.checkbox("Version Three")
-            version_iv_ = st.checkbox("Version Four")
-            version_v_ = st.checkbox("Version Five")
-            version_vi_ = st.checkbox("Version Six")
+            st.write("Choose LLM or Multimodal")
+            llm_ = st.checkbox("LLM (Old Version)")
+            multimodal_ = st.checkbox("Multimodal (Latest Version)")
         # Connection
         con, cur = connection()
         mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
-        if (version_i_ and version_ii_) or (version_ii_ and version_iii_) or (version_i_ and version_iii_) or (version_i_ and version_ii_ and version_iii):
+        if llm_ and multimodal_:
             with st.sidebar:
                 st.info("Choose only one")
-        elif version_i_:
-            version_i(con, cur)
-        elif version_ii_:
-            version_ii(con, cur)
-        elif version_iii_:
-            version_iii(con, cur)
-        elif version_iv_:
-            version_iv(con, cur)   
-        elif version_v_:
-            version_v(con, cur) 
-        elif version_vi_:
-            version_vi(con, cur) 
+        elif llm_:
+            llm(con, cur)
+        elif multimodal_:
+            multimodal(con, cur)
             
         # Close Connection
         cur.close()
