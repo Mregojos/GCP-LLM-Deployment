@@ -121,7 +121,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 20
+    LIMIT = 5
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -246,6 +246,7 @@ def multimodal(con, cur):
                         # st.write(f"Exception: {e}")
                         output = prompt_error
                         characters = len(prompt_user)
+                        output_characters = len(output)
                         end_time = t.time() 
                         ### Insert into a table
                         SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
