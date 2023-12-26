@@ -139,12 +139,12 @@ def multimodal(con, cur):
     #------------------ Info --------------------------#
     if GUEST == False or (GUEST == True and total_count < LIMIT):
         st.info("""
-                You can now start the conversation by prompting to the text bar. Enjoy. :smile: You can ask:
+                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
                 * What is Cloud Computing?
                 * What is Google Cloud?
-                * Google Cloud Important Services
-                * Compare Site Reliability Engineering and DevOps
-                * Tell me about different Cloud Services
+                * Important Google Cloud Services to know
+                * Compare Site Reliability Engineering with DevOps
+                * Tell me about different cloud services
                 * Explain Cloud Computing in simple terms
                 * Tell me a funny quote related to Cloud Computing
                 """)
