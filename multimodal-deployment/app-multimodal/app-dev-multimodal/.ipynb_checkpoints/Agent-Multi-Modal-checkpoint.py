@@ -24,9 +24,8 @@ vertexai.init(project=PROJECT_NAME, location="us-central1")
 
 #----------Page Configuration----------# 
 st.set_page_config(page_title="Matt Cloud Tech",
-                   page_icon=":cloud:" #,
-                   # layout="wide"
-                  )
+                   page_icon=":cloud:" ,
+                   layout="wide")
 
 # Title
 st.write("#### Multimodal Model Deployment ")
@@ -566,14 +565,14 @@ def multimodal(con, cur):
                 * Tell me a funny quote related to Cloud Computing
                 """)
     
-    #------------------ prompt_prune_info ------------------#
+    #------------------ prompt_info ------------------#
     prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
     prompt_error = "Sorry about that. Please prompt it again or prune the history."
         
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Chat", "Multimodal with DB", "Vision (One Turn)", "Vision with DB", "Chat with DB"]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Chat Only", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Only with DB"]))
             prompt_user = st.text_area("Prompt")
             uploaded_file = None
             current_image_detail = ""
@@ -688,7 +687,7 @@ def multimodal(con, cur):
                     st.info(limited_prompt) 
 
             #-------------------Chat---------------------#
-            if model == "Chat":
+            if model == "Chat Only":
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
@@ -705,15 +704,9 @@ def multimodal(con, cur):
                         response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                         output = response.text
                         end_time = t.time()
-
                         ### Insert into a table
                         SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                        cur.execute(SQL, data)
-                        con.commit()
-                        ### Insert into a table (total_prompts)
-                        SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
                         cur.execute(SQL, data)
                         con.commit()
                     except Exception as e:
@@ -837,18 +830,20 @@ def multimodal(con, cur):
 
             #-------------------Vision One Turn---------------------#
             if model == "Vision" or model == "Vision (One Turn)":
-                image_data = ""
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."   
-                uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-                if uploaded_file is not None:
-                    image_data = uploaded_file.read()
-                    image_name = uploaded_file.name
-                    st.image(image_data, image_name)
-                    image_data_base = base64.b64encode(image_data)
-                    # st.write(image_data_base)
-                    image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")  
-                button = st.button("Send")
+                image = st.checkbox("Add a photo")
+                if image:
+                    uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+                    if uploaded_file is not None:
+                        image_data = uploaded_file.read()
+                        image_name = uploaded_file.name
+                        st.image(image_data, image_name)
+                        image_data_base = base64.b64encode(image_data)
+                        image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                        # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                        # st.image(image_data_base_string_data)
+                        image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
                 if button:
                     if uploaded_file is None:
                         st.info("Upload file first")
@@ -858,9 +853,8 @@ def multimodal(con, cur):
                         responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
                         end_time = t.time()
 
-
             #-------------------Vision with DB--------------------#
-            if model == "Vision with DB":
+            if model == "Vision (One Turn) with DB":
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."  
                 uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
@@ -922,8 +916,8 @@ def multimodal(con, cur):
                     con.commit()
                     st.info(prompt_prune_info)
 
-            #-------------------Chat with DB---------------------#
-            if model == "Chat with DB":
+            #-------------------Chat Only with DB---------------------#
+            if model == "Chat Only with DB":
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
@@ -934,28 +928,35 @@ def multimodal(con, cur):
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)
-                    for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
-                        prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                    response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                    response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                    if response != " ":
-                        output = response.text
-                    elif response == "" or response == None:
-                        output = "Oh snap. Could your repeat the prompt?"
-                    else:
-                        output = "Oh snap. Could your repeat the prompt?"
-                    end_time = t.time()
+                    try:
+                        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+                            prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                        response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                        if response != " ":
+                            output = response.text
+                        elif response == "" or response == None:
+                            output = "Oh snap. Could your repeat the prompt?"
+                        else:
+                            output = "Oh snap. Could your repeat the prompt?"
+                        end_time = t.time()
 
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                    cur.execute(SQL, data)
-                    con.commit()
-                    ### Insert into a table (total_prompts)
-                    SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
-                    cur.execute(SQL, data)
-                    con.commit()
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
+                    except:
+                        output = prompt_error
+                        characters = len(prompt_user)
+                        end_time = t.time() 
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
+                        
+                        
                 prune = st.button(":red[Prune History]")
                 if prune:
                     cur.execute(f"""
@@ -964,7 +965,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"History by {input_name} is successfully deleted.")
+                    st.info(prompt_prune_info)
                     
         #----------Prune Guest Limits using Admin---------#
         if (GUEST == False):
@@ -1007,7 +1008,7 @@ def multimodal(con, cur):
                     message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
 
     #-------------------Chat---------------------#
-    if model == "Chat Model" or model == "Chat":
+    if model == "Chat Model" or model == "Chat Only":
         cur.execute(f"""
         SELECT * 
         FROM chats_mmm
@@ -1051,13 +1052,14 @@ def multimodal(con, cur):
 
     #-------------------Vision---------------------#
     if model == "Vision" or model == "Vision (One Turn)":
-        message = st.chat_message("assistant")
-        message.image(image_data)
-        message.markdown(responses.text)
-        message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+        if uploaded_file is not None:
+            message = st.chat_message("assistant")
+            message.image(image_data)
+            message.markdown(responses.text)
+            message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Vision with DB--------------------#
-    if model == "Vision with DB":
+    if model == "Vision (One Turn) with DB":
         cur.execute(f"""
         SELECT * 
         FROM vision_db
@@ -1073,7 +1075,7 @@ def multimodal(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Chat with DB---------------------#
-    if model == "Chat with DB":
+    if model == "Chat Only with DB":
         cur.execute(f"""
         SELECT * 
         FROM chats_mmm
@@ -1097,7 +1099,14 @@ def multimodal(con, cur):
         data = (input_name, prompt_user, output, model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
-        
+
+    #---------------- Insert into a table (total_prompts) ----------------#
+    if button:
+        SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+        data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
+        cur.execute(SQL, data)
+        con.commit()
+    
 #----------Execution----------#
 if __name__ == '__main__':
     # Connection
