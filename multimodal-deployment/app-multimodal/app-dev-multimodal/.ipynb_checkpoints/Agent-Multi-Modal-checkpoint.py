@@ -892,6 +892,9 @@ if __name__ == '__main__':
             GUEST = True
             guest_limit = True
             multimodal(con, cur)
+        
+        elif not login and not guest:
+            st.info("Choose login or continue as a guest to get started")
                 
         # Close Connection
         cur.close()
