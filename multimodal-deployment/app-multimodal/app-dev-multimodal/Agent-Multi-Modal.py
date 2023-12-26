@@ -966,89 +966,6 @@ def multimodal(con, cur):
                                 """)
                     con.commit()
                     st.info(prompt_prune_info)
-            
-            #-------------------Chat Only (Old Version)---------------------#
-            if model == "Chat Only (Old Version)":
-                button = st.button("Send")
-                if button:
-                    try:
-                        current_model = "Chat Only (Old Version)"
-                        cur.execute(f"""
-                                SELECT * 
-                                FROM chats
-                                WHERE name='{input_name}'
-                                ORDER BY time ASC
-                                """)
-                        for id, name, prompt, output, model, time in cur.fetchall():
-                            prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                        response = chat.send_message(prompt_history, **chat_parameters)
-                        response = chat.send_message(prompt_user, **chat_parameters)
-                        if response != " ":
-                            output = response.text
-                        elif response == "" or response == None:
-                            output = "Oh snap. Could your repeat the prompt?"
-                        else:
-                            output = "Oh snap. Could your repeat the prompt?"
-
-                    except:
-                        output = "Sorry for that. Could your repeat the prompt?"
-                        
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time)
-                    cur.execute(SQL, data)
-                    con.commit()
-
-                prune = st.button(":red[Prune History]")
-                if prune:
-                    cur.execute(f"""
-                                DELETE  
-                                FROM chats
-                                WHERE name='{input_name}'
-                                """)
-                    con.commit()
-                    st.info(prompt_prune_info)
-                        
-            #-------------------Code (Old Version)---------------------#
-            if model == "Code (Old Version)":
-                button = st.button("Send")
-                if button:
-                    try:
-                        current_model = "Code (Old Version)"
-                        cur.execute(f"""
-                                SELECT * 
-                                FROM chats
-                                WHERE name='{input_name}'
-                                ORDER BY time ASC
-                                """)
-                        for id, name, prompt, output, model, time in cur.fetchall():
-                            prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                        response = code_chat.send_message(prompt_history, **code_parameters)
-                        response = code_chat.send_message(prompt_user, **code_parameters)
-                        if response != " ":
-                            output = response.text
-                        elif response == "" or response == None:
-                            output = "Oh snap. Could your repeat the prompt?"
-                        else:
-                            output = "Oh snap. Could your repeat the prompt?"
-                    except:
-                        output = "I didn't catch that. Could your repeat the prompt?"
-
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time)
-                    cur.execute(SQL, data)
-                    con.commit()
-
-                prune = st.button(":red[Prune History]")
-                if prune:
-                    cur.execute(f"""
-                                DELETE  
-                                FROM chats
-                                WHERE name='{input_name}'
-                                """)
-                    con.commit()
-                    st.info(prompt_prune_info)
                     
         #----------Prune Guest Limits using Admin---------#
         if (GUEST == False):
@@ -1174,7 +1091,100 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
-    #-------------------Old Version---------------------#
+    #-------------------Old Version---------------------------------#
+    #-------------------Chat Only (Old Version)---------------------#
+    if model == "Chat Only (Old Version)":
+        prompt_user_chat = st.chat_input("What do you want to talk about?")
+        with st.sidebar: 
+            button = st.button("Send")
+            if button or prompt_user_chat:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                try:
+                    current_model = "Chat Only (Old Version)"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM chats
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    for id, name, prompt, output, model, time in cur.fetchall():
+                        prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                    response = chat.send_message(prompt_history, **chat_parameters)
+                    response = chat.send_message(prompt_user, **chat_parameters)
+                    if response != " ":
+                        output = response.text
+                    elif response == "" or response == None:
+                        output = "Oh snap. Could your repeat the prompt?"
+                    else:
+                        output = "Oh snap. Could your repeat the prompt?"
+
+                except:
+                    output = "Sorry for that. Could your repeat the prompt?"
+
+                ### Insert into a table
+                SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time)
+                cur.execute(SQL, data)
+                con.commit()
+
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute(f"""
+                            DELETE  
+                            FROM chats
+                            WHERE name='{input_name}'
+                            """)
+                con.commit()
+                st.info(prompt_prune_info)
+
+    #-------------------Code (Old Version)---------------------#
+    if model == "Code (Old Version)":
+        prompt_user_chat = st.chat_input("What do you want to talk about?")
+        with st.sidebar: 
+            button = st.button("Send")
+            if button or prompt_user_chat:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                try:
+                    current_model = "Chat Only (Old Version)"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM chats
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    for id, name, prompt, output, model, time in cur.fetchall():
+                        prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                    response = code_chat.send_message(prompt_history, **chat_parameters)
+                    response = code_chat.send_message(prompt_user, **chat_parameters)
+                    if response != " ":
+                        output = response.text
+                    elif response == "" or response == None:
+                        output = "Oh snap. Could your repeat the prompt?"
+                    else:
+                        output = "Oh snap. Could your repeat the prompt?"
+
+                except:
+                    output = "Sorry for that. Could your repeat the prompt?"
+
+                ### Insert into a table
+                SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
+                data = (input_name, prompt_user, output, current_model, current_time)
+                cur.execute(SQL, data)
+                con.commit()
+
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute(f"""
+                            DELETE  
+                            FROM chats
+                            WHERE name='{input_name}'
+                            """)
+                con.commit()
+                st.info(prompt_prune_info)
+            
+    #-------------------Chat Only and Code (Old Version)---------------------#
     if model == "Chat Only (Old Version)" or model == "Code (Old Version)":
         cur.execute(f"""
         SELECT * 
@@ -1217,47 +1227,86 @@ if __name__ == '__main__':
         con, cur = connection()
         con = True
     except:
-        st.info("##### :computer: ```DATABASE CONNECTION ERROR: The app can't connect to the database right now. Please try again later.```")
+        st.info("##### :computer: ```DATABASE CONNECTION: The app can't connect to the database right now. Please try again later.```")
     if con == True:
-        with st.sidebar:
-            st.write("Choose LLM or Multimodal")
-            llm_ = st.checkbox("LLM (Old Version)")
-            multimodal_ = st.checkbox("Multimodal (Latest Version)")
         # Connection
         con, cur = connection()
         mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
-        if llm_ and multimodal_:
+        with st.sidebar:
+            st.header(":computer: Agent ",divider="rainbow")
+            st.caption("## Multimodal Chat Agent")
+            st.write(f":violet[Your chat will be stored in a database.]")
+            st.caption(":warning: :red[Do not add sensitive data.]")
+            # st.write("Login or Continue as a guest")
+            login = st.checkbox("Login")
+            guest = st.checkbox("Continue as a guest")
+            # Chat View Counter
+            time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+            view = 1
+            SQL = "INSERT INTO chat_view_counter (view, time) VALUES(%s, %s);"
+            data = (view, time)
+            cur.execute(SQL, data)
+            con.commit()
+        if login and guest:
             with st.sidebar:
                 st.info("Choose only one")
-        elif llm_:
-            llm(con, cur)
-        elif multimodal_:
+        elif login:
             with st.sidebar:
-                st.divider()
-                st.write("Login or Continue as a guest")
-                login = st.checkbox("Login")
-                guest = st.checkbox("Continue as a guest")
-            if login and guest:
-                with st.sidebar:
-                    st.info("Choose only one")
-            elif login:
-                with st.sidebar:
-                    password = st.text_input("Password", type="password")
-                    agent = st.toggle("**:violet[Start the conversation]**")
-                if password == ADMIN_PASSWORD and agent:
-                    default_name = "Admin"
-                    GUEST = False
-                    guest_limit = False
-                    multimodal(con, cur)        
-                elif password != ADMIN_PASSWORD and agent:
-                    with st.sidebar:
-                        st.info("Wrong Password")
-                    
-            elif guest:
-                default_name = "Guest"
-                GUEST = True
-                guest_limit = True
+                password = st.text_input("Password", type="password")
+                agent = st.toggle("**:violet[Start the conversation]**")
+            if password == ADMIN_PASSWORD and agent:
+                default_name = "Admin"
+                GUEST = False
+                guest_limit = False
                 multimodal(con, cur)
+                
+                # Counter
+                with st.sidebar:
+                    counter = st.checkbox("Counter")
+                    if counter:
+                        st.header("Counter")
+                        st.caption("""
+                                    Count every request in this app.
+                                    """)
+                        st.subheader("",divider="rainbow")
+                        # Total views
+                        cur.execute("""
+                                    SELECT SUM(view) 
+                                    FROM chat_view_counter
+                                    """)
+                        st.write(f"#### Total views: **{cur.fetchone()[0]}**")
+                        # Current view
+                        st.write(f"Current: {time}")
+                        # Total views today
+                        time_date = time[0:15]
+                        cur.execute(f"""
+                                    SELECT SUM(view) 
+                                    FROM chat_view_counter
+                                    WHERE time LIKE '{time_date}%'
+                                    """)
+                        st.write(f"#### Total views today: **{cur.fetchone()[0]}**")
+                        st.divider()
+                        # Previous views
+                        views = st.checkbox("See Previous Views")
+                        if views:
+                            st.write("**Previous Views**")
+                            cur.execute("""
+                                        SELECT * 
+                                        FROM counter
+                                        ORDER BY time DESC
+                                        """)
+                            for _, _, time in cur.fetchall():
+                                st.caption(f"{time}")
+                            
+            elif password != ADMIN_PASSWORD and agent:
+                with st.sidebar:
+                    st.info("Wrong Password")
+
+        elif guest:
+            default_name = "Guest"
+            GUEST = True
+            guest_limit = True
+            multimodal(con, cur)
                 
         # Close Connection
         cur.close()
@@ -1270,6 +1319,8 @@ if __name__ == '__main__':
                     ---
                     > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
                     > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
+                    
+                    > :gray[This website is for demonstration purposes only.]
                     ---
                     """)
 
