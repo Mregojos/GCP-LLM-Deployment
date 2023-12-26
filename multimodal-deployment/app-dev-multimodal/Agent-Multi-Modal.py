@@ -151,7 +151,7 @@ def multimodal(con, cur):
     
     #------------------ prompt_info ------------------#
     prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
-    prompt_error = "Sorry about that. Please prompt it again or prune the history."
+    prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
         
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
