@@ -1174,7 +1174,7 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
-    #-------------------Chat with DB---------------------#
+    #-------------------Old Version---------------------#
     if model == "Chat Only (Old Version)" or model == "Code (Old Version)":
         cur.execute(f"""
         SELECT * 
@@ -1206,6 +1206,8 @@ def multimodal(con, cur):
         data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
+        
+
     
 #----------Execution----------#
 if __name__ == '__main__':
