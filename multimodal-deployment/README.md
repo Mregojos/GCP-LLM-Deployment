@@ -1,8 +1,8 @@
-# Multi-Modal Model (MMM) Deployment
+# Multimodal Model (MMM) Deployment
 
 ## Objective
-* To test the new multi-modal model
-* To deploy the new multi-modal model using GCP services
+* To test the new multimodal model
+* To deploy the new multimodal model using GCP services
 
 ## Instructions
 ```sh
