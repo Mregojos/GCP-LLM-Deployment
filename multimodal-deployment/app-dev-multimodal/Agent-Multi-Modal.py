@@ -150,9 +150,11 @@ def multimodal(con, cur):
                 """)
     
     #------------------ prompt_info ------------------#
+    prompt_history = "You are an intelligent Agent."
+    limited_prompt = "For Multimodal Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
     prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
     prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
-        
+
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
@@ -162,8 +164,6 @@ def multimodal(con, cur):
             current_image_detail = ""
             image_data_base_string = ""
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-            limited_prompt = "For Multimodal Model, chat history is limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-            prompt_history = "You are an intelligent Agent."
             total_prompt_limit = 4
             count_prompt = 1
             round_number = 2
@@ -278,7 +278,7 @@ def multimodal(con, cur):
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
-                    current_model = "Chat"
+                    current_model = "Chat Only"
                     cur.execute(f"""
                             SELECT * 
                             FROM chats_mmm
