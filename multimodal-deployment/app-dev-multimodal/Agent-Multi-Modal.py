@@ -47,7 +47,7 @@ def connection():
     # cur.execute("DROP TABLE vision_db")
     cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     # cur.execute("DROP TABLE multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int)")
+    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int, total_output_characters int)")
     cur.execute("CREATE TABLE IF NOT EXISTS multimodal_guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
@@ -121,7 +121,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 5
+    LIMIT = 20
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -218,26 +218,28 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """)
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
+                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters, total_output_characters in cur.fetchall():
                             response = mm_chat.send_message(prompt, generation_config=mm_config)
                         if uploaded_file is not None:
                             response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
                             output = response.text
                             characters = len(prompt_user)
+                            output_characters = len(output)
                             end_time = t.time() 
                             ### Insert into a table
-                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters, output_characters)
                             cur.execute(SQL, data)
                             con.commit()
                         else:
                             response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                             output = response.text
                             characters = len(prompt_user)
+                            output_characters = len(output)
                             end_time = t.time() 
                             ### Insert into a table
-                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters, output_characters)
                             cur.execute(SQL, data)
                             con.commit()
                     except Exception as e:
@@ -246,8 +248,8 @@ def multimodal(con, cur):
                         characters = len(prompt_user)
                         end_time = t.time() 
                         ### Insert into a table
-                        SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                        SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters, output_characters)
                         cur.execute(SQL, data)
                         con.commit()
                     # Print out expection
@@ -560,7 +562,7 @@ def multimodal(con, cur):
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
-        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters in cur.fetchall():
+        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_characters, total_output_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
             if total_prompt <= 4:
@@ -568,16 +570,16 @@ def multimodal(con, cur):
                     image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
                     message.image(image_data_base_string_data)
                     message.text(f"{prompt}")
-                    message.caption(f"{time}")
+                    message.caption(f"{time} | Input Characters: {total_characters}")
                     message = st.chat_message("assistant")
                     message.markdown(output)
-                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}" )                 
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}" )                 
                 elif saved_image_data_base_string is "":
                     message.text(f"{prompt}")
-                    message.caption(f"{time}")
+                    message.caption(f"{time} | Input Characters: {total_characters}")
                     message = st.chat_message("assistant")
                     message.markdown(output)
-                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
 
     #-------------------Chat---------------------#
     if model == "Chat Model" or model == "Chat Only":
