@@ -550,18 +550,6 @@ def multimodal(con, cur):
                                 """)
                     con.commit()
                     st.info(prompt_prune_info)
-                    
-        #----------Prune Guest Limits using Admin---------#
-        if (GUEST == False):
-            prune_guest_limit = st.button(":red[Prune Guest History Limit]")
-            if prune_guest_limit:
-                cur.execute(f"""
-                            DELETE  
-                            FROM multimodal_guest_chats
-                            WHERE name='Guest'
-                            """)
-                con.commit()
-                st.info(f"Prompt history by Guest is successfully deleted.")
 
     #-------------------Conversations---------------------#
     #-------------------Multimodal---------------------#
@@ -699,12 +687,12 @@ def multimodal(con, cur):
                     if response != " ":
                         output = response.text
                     elif response == "" or response == None:
-                        output = "Oh snap. Could your repeat the prompt?"
+                        output = prompt_error
                     else:
-                        output = "Oh snap. Could your repeat the prompt?"
+                        output = prompt_error
 
                 except:
-                    output = "Sorry for that. Could your repeat the prompt?"
+                    output = prompt_error
 
                 ### Insert into a table
                 SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
@@ -745,12 +733,12 @@ def multimodal(con, cur):
                     if response != " ":
                         output = response.text
                     elif response == "" or response == None:
-                        output = "Oh snap. Could your repeat the prompt?"
+                        output = prompt_error
                     else:
-                        output = "Oh snap. Could your repeat the prompt?"
+                        output = prompt_error
 
                 except:
-                    output = "Sorry for that. Could your repeat the prompt?"
+                    output = prompt_error
 
                 ### Insert into a table
                 SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
@@ -793,6 +781,19 @@ def multimodal(con, cur):
         data = (input_name, prompt_user, output, model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
+        
+    #----------Prune Guest Limits using Admin---------#
+    if (GUEST == False):
+        with st.sidebar:
+            prune_guest_limit = st.button(":red[Prune Guest History Limit]")
+            if prune_guest_limit:
+                cur.execute(f"""
+                            DELETE  
+                            FROM multimodal_guest_chats
+                            WHERE name='Guest'
+                            """)
+                con.commit()
+                st.info(f"Prompt history by Guest is successfully deleted.")
 
     #---------------- Insert into a table (total_prompts) ----------------#
     if button:
@@ -817,8 +818,8 @@ if __name__ == '__main__':
         con, cur = connection()
         mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
         with st.sidebar:
-            st.header(":computer: Agent ",divider="rainbow")
-            st.caption("## Multimodal Chat Agent")
+            st.header(":computer: Multimodal Agent ",divider="rainbow")
+            # st.caption("## Multimodal Chat Agent")
             st.write(f":violet[Your chat will be stored in a database.]")
             st.caption(":warning: :red[Do not add sensitive data.]")
             # st.write("Login or Continue as a guest")
