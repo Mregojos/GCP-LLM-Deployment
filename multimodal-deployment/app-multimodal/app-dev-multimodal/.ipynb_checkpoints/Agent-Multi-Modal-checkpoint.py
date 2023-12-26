@@ -560,7 +560,7 @@ def multimodal(con, cur):
                 * What is Cloud Computing?
                 * What is Google Cloud?
                 * Google Cloud Important Services
-                * Compare Site Reliability Engineering and DevOps?
+                * Compare Site Reliability Engineering and DevOps
                 * Tell me about different Cloud Services
                 * Explain Cloud Computing in simple terms
                 * Tell me a funny quote related to Cloud Computing
@@ -568,6 +568,7 @@ def multimodal(con, cur):
     
     #------------------ prompt_prune_info ------------------#
     prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
+    prompt_error = "Sorry about that. Please prompt it again or prune the history."
         
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
@@ -658,7 +659,7 @@ def multimodal(con, cur):
                             con.commit()
                     except Exception as e:
                         # st.write(f"Exception: {e}")
-                        output = "Sorry about that. Please prompt it again."
+                        output = prompt_error
                         characters = len(prompt_user)
                         end_time = t.time() 
                         ### Insert into a table
@@ -679,8 +680,9 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.rerun()
                     st.info(prompt_prune_info)
+                    st.rerun()
+                    
         
                 if total_prompt == total_prompt_limit: 
                     st.info(limited_prompt) 
@@ -697,22 +699,34 @@ def multimodal(con, cur):
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)
-                    for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
-                        response = mm_chat.send_message(prompt, generation_config=mm_config)
-                    response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                    output = response.text
-                    end_time = t.time()
+                    try:
+                        for id, name, prompt, output, model, time, start_time, end_time in cur.fetchall():
+                            response = mm_chat.send_message(prompt, generation_config=mm_config)
+                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                        output = response.text
+                        end_time = t.time()
 
-                    ### Insert into a table
-                    SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                    cur.execute(SQL, data)
-                    con.commit()
-                    ### Insert into a table (total_prompts)
-                    SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
-                    cur.execute(SQL, data)
-                    con.commit()
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
+                        ### Insert into a table (total_prompts)
+                        SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
+                        cur.execute(SQL, data)
+                        con.commit()
+                    except Exception as e:
+                        # st.write(f"Exception: {e}")
+                        output = prompt_error
+                        characters = len(prompt_user)
+                        end_time = t.time() 
+                        ### Insert into a table
+                        SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                        cur.execute(SQL, data)
+                        con.commit()
+                        
 
                 prune = st.button(":red[Prune History]")
                 if prune:
@@ -724,7 +738,7 @@ def multimodal(con, cur):
                     con.commit()
                     st.info(prompt_prune_info)
 
-            #-------------------Multi-Modal with DB---------------------#
+            #-------------------Multimodal with DB---------------------#
             if model == "Multimodal with DB":
                 uploaded_file = None
                 current_image_detail = ""
@@ -797,7 +811,14 @@ def multimodal(con, cur):
                             cur.execute(SQL, data)
                             con.commit()
                     except:
-                        output = "Sorry about that. Please prompt it again."
+                        output = prompt_error
+                        characters = len(prompt_history)
+                        end_time = t.time() 
+                        ### Insert into a table
+                        SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
+                        cur.execute(SQL, data)
+                        con.commit()
                     # Print out expection
                     # except Exception as e:
                     #    with st.sidebar:
@@ -816,6 +837,7 @@ def multimodal(con, cur):
 
             #-------------------Vision One Turn---------------------#
             if model == "Vision" or model == "Vision (One Turn)":
+                image_data = ""
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."   
                 uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
