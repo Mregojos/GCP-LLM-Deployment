@@ -572,7 +572,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Chat Only", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Only with DB"]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Chat Only", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Only with DB", "Chat Only (Old Version)", "Code (Old Version)"]))
             prompt_user = st.text_area("Prompt")
             uploaded_file = None
             current_image_detail = ""
@@ -966,6 +966,89 @@ def multimodal(con, cur):
                                 """)
                     con.commit()
                     st.info(prompt_prune_info)
+            
+            #-------------------Chat Only (Old Version)---------------------#
+            if model == "Chat Only (Old Version)":
+                button = st.button("Send")
+                if button:
+                    try:
+                        current_model = "Chat Only (Old Version)"
+                        cur.execute(f"""
+                                SELECT * 
+                                FROM chats
+                                WHERE name='{input_name}'
+                                ORDER BY time ASC
+                                """)
+                        for id, name, prompt, output, model, time in cur.fetchall():
+                            prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                        response = chat.send_message(prompt_history, **chat_parameters)
+                        response = chat.send_message(prompt_user, **chat_parameters)
+                        if response != " ":
+                            output = response.text
+                        elif response == "" or response == None:
+                            output = "Oh snap. Could your repeat the prompt?"
+                        else:
+                            output = "Oh snap. Could your repeat the prompt?"
+
+                    except:
+                        output = "Sorry for that. Could your repeat the prompt?"
+                        
+                    ### Insert into a table
+                    SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time)
+                    cur.execute(SQL, data)
+                    con.commit()
+
+                prune = st.button(":red[Prune History]")
+                if prune:
+                    cur.execute(f"""
+                                DELETE  
+                                FROM chats
+                                WHERE name='{input_name}'
+                                """)
+                    con.commit()
+                    st.info(prompt_prune_info)
+                        
+            #-------------------Code (Old Version)---------------------#
+            if model == "Code (Old Version)":
+                button = st.button("Send")
+                if button:
+                    try:
+                        current_model = "Code (Old Version)"
+                        cur.execute(f"""
+                                SELECT * 
+                                FROM chats
+                                WHERE name='{input_name}'
+                                ORDER BY time ASC
+                                """)
+                        for id, name, prompt, output, model, time in cur.fetchall():
+                            prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
+                        response = code_chat.send_message(prompt_history, **code_parameters)
+                        response = code_chat.send_message(prompt_user, **code_parameters)
+                        if response != " ":
+                            output = response.text
+                        elif response == "" or response == None:
+                            output = "Oh snap. Could your repeat the prompt?"
+                        else:
+                            output = "Oh snap. Could your repeat the prompt?"
+                    except:
+                        output = "I didn't catch that. Could your repeat the prompt?"
+
+                    ### Insert into a table
+                    SQL = "INSERT INTO chats (name, prompt, output, model, time) VALUES(%s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time)
+                    cur.execute(SQL, data)
+                    con.commit()
+
+                prune = st.button(":red[Prune History]")
+                if prune:
+                    cur.execute(f"""
+                                DELETE  
+                                FROM chats
+                                WHERE name='{input_name}'
+                                """)
+                    con.commit()
+                    st.info(prompt_prune_info)
                     
         #----------Prune Guest Limits using Admin---------#
         if (GUEST == False):
@@ -1090,6 +1173,23 @@ def multimodal(con, cur):
             message = st.chat_message("assistant")
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+
+    #-------------------Chat with DB---------------------#
+    if model == "Chat Only (Old Version)" or model == "Code (Old Version)":
+        cur.execute(f"""
+        SELECT * 
+        FROM chats
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time in cur.fetchall():
+            message = st.chat_message("user")
+            message.write(f":blue[{name}]") 
+            message.text(f"{prompt}")
+            message.caption(f"{time}")
+            message = st.chat_message("assistant")
+            message.markdown(output)
+            message.caption(f"{time} | Model: {model}") 
 
 
     #------------------For Multimodal Guest Limits-----------------------#
