@@ -814,6 +814,7 @@ def multimodal(con, cur):
  
     #-------------------Comparison: Chat Only (New vs Old Version)---------------------------------------#
     if model == "Chat Only (New vs Old Version)":
+        prompt_user_chat = st.chat_input("What do you want to talk about?")
         with st.sidebar:
             button = st.button("Send")
             prune = st.button(":red[Prune History]")
@@ -834,7 +835,9 @@ def multimodal(con, cur):
                 st.info(prompt_prune_info)
         
         
-        if button:
+        if button or prompt_user_chat:
+            if prompt_user_chat:
+                prompt_user = prompt_user_chat
             #-------------------Chat Only New Version---------------------#
             current_start_time = t.time() 
             current_model = "Chat Only"
@@ -868,8 +871,6 @@ def multimodal(con, cur):
 
             #-------------------Chat Only Old Version---------------------#
             current_start_time = t.time()
-            # if prompt_user_chat:
-            #    prompt_user = prompt_user_chat
             try:
                 current_model = "Chat Only (Old Version)"
                 cur.execute(f"""
