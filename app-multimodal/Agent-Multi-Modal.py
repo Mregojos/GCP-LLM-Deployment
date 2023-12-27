@@ -173,7 +173,7 @@ def multimodal(con, cur):
         
         #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
-            st.info("Guest daily limit has reached!")
+            st.info("Guest daily limit has reached.")
 
         #------------------ Multimodal Chats --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
