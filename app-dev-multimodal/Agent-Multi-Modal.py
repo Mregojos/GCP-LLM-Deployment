@@ -48,6 +48,8 @@ def connection():
     cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
     # cur.execute("DROP TABLE multimodal")
     cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int, total_output_characters int)")
+    # cur.execute("DROP TABLE multimodal_DB")
+    cur.execute("CREATE TABLE IF NOT EXISTS multimodal_DB(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_characters int)")
     cur.execute("CREATE TABLE IF NOT EXISTS multimodal_guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     cur.execute("CREATE TABLE IF NOT EXISTS guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     # cur.execute("CREATE TABLE IF NOT EXISTS users(id serial PRIMARY KEY, name varchar, password varchar)")
@@ -121,7 +123,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 5
+    LIMIT = 18
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -344,16 +346,13 @@ def multimodal(con, cur):
                 #     pass
 
                 current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-                prompt_history = "You are an intelligent Agent."
-                count_prompt = 1
-                round_number = 2    
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
                     current_model = "Multimodal with DB"
                     cur.execute(f"""
                             SELECT * 
-                            FROM multimodal
+                            FROM multimodal_DB
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)
@@ -376,7 +375,7 @@ def multimodal(con, cur):
                             characters = len(prompt_history)
                             end_time = t.time() 
                             ### Insert into a table
-                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                            SQL = "INSERT INTO multimodal_DB (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                             data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
                             cur.execute(SQL, data)
                             con.commit()
@@ -386,7 +385,7 @@ def multimodal(con, cur):
                             characters = len(prompt_history)
                             end_time = t.time() 
                             ### Insert into a table
-                            SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                            SQL = "INSERT INTO multimodal_DB (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                             data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
                             cur.execute(SQL, data)
                             con.commit()
@@ -395,7 +394,7 @@ def multimodal(con, cur):
                         characters = len(prompt_history)
                         end_time = t.time() 
                         ### Insert into a table
-                        SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                        SQL = "INSERT INTO multimodal_DB (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, characters)
                         cur.execute(SQL, data)
                         con.commit()
@@ -409,7 +408,7 @@ def multimodal(con, cur):
                 if prune:
                     cur.execute(f"""
                                 DELETE  
-                                FROM multimodal
+                                FROM multimodal_DB
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
@@ -600,10 +599,10 @@ def multimodal(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Multi-Modal with DB---------------------#
-    if model == "Multimodal with DB" or model == "Multimodal with DB":
+    if model == "Multimodal with DB":
         cur.execute(f"""
         SELECT * 
-        FROM multimodal
+        FROM multimodal_DB
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
