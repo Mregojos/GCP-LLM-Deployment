@@ -916,7 +916,7 @@ if __name__ == '__main__':
                             st.write("**Previous Views**")
                             cur.execute("""
                                         SELECT * 
-                                        FROM counter
+                                        FROM chat_view_counter
                                         ORDER BY time DESC
                                         """)
                             for _, _, time in cur.fetchall():
