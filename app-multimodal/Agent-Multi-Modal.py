@@ -169,6 +169,7 @@ def multimodal(con, cur):
             total_prompt_limit = 4
             count_prompt = 1
             round_number = 2
+            vision_response = ""
         
         #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
@@ -414,30 +415,38 @@ def multimodal(con, cur):
                     con.commit()
                     st.info(prompt_prune_info)
 
-            #-------------------Vision One Turn---------------------#
-            if model == "Vision" or model == "Vision (One Turn)":
+            #-------------------Vision (One Turn)---------------------#
+            if model == "Vision (One Turn)":
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."   
                 image = st.checkbox("Add a photo")
-                if image:
-                    uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-                    if uploaded_file is not None:
-                        image_data = uploaded_file.read()
-                        image_name = uploaded_file.name
-                        st.image(image_data, image_name)
-                        image_data_base = base64.b64encode(image_data)
-                        image_data_base_string = base64.b64encode(image_data).decode("utf-8")
-                        # image_data_base_string_data = base64.b64decode(image_data_base_string)
-                        # st.image(image_data_base_string_data)
-                        image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
-                if button:
-                    if uploaded_file is None:
-                        st.info("Upload file first")
-                    else:
-                        start_time = t.time() 
-                        current_model = "Vision (One Turn)"
-                        responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                        end_time = t.time()
+                try:
+                    if image:
+                        uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+                        if uploaded_file is not None:
+                            image_data = uploaded_file.read()
+                            image_name = uploaded_file.name
+                            st.image(image_data, image_name)
+                            image_data_base = base64.b64encode(image_data)
+                            image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                            # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                            # st.image(image_data_base_string_data)
+                            image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
+                    start_time = t.time() 
+                    current_model = "Vision (One Turn)"
+                    button = st.button("Send")
+                    if button:
+                        if uploaded_file is None:
+                            st.info("Upload file first")
+                        else:
+
+                            responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                            output = responses.text
+                            end_time = t.time()
+                except:
+                    output = prompt_error
+                    end_time = t.time()
+                    st.info(output)
 
             #-------------------Vision with DB--------------------#
             if model == "Vision (One Turn) with DB":
@@ -625,11 +634,11 @@ def multimodal(con, cur):
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Input Characters: {total_characters}")
 
     #-------------------Vision---------------------#
-    if model == "Vision" or model == "Vision (One Turn)":
-        if uploaded_file is not None:
+    if model == "Vision (One Turn)":
+        if uploaded_file is not None and button:
             message = st.chat_message("assistant")
             message.image(image_data)
-            message.markdown(responses.text)
+            message.markdown(output)
             message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Vision with DB--------------------#
