@@ -439,14 +439,12 @@ def multimodal(con, cur):
                         if uploaded_file is None:
                             st.info("Upload file first")
                         else:
-
                             responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
                             output = responses.text
                             end_time = t.time()
                 except:
                     output = prompt_error
                     end_time = t.time()
-                    st.info(output)
 
             #-------------------Vision with DB--------------------#
             if model == "Vision (One Turn) with DB":
@@ -466,41 +464,50 @@ def multimodal(con, cur):
                 if button:
                     if uploaded_file is None:
                         st.info("Upload file first")
+                        current_start_time = t.time() 
+                        current_model = "Vision (One Turn) with DB"
+                        output = "Upload file first" 
                     else:
                         current_start_time = t.time() 
-                        current_model = "Vision with DB"
+                        current_model = "Vision (One Turn) with DB"
                         cur.execute(f"""
                                 SELECT * 
                                 FROM vision_db
                                 WHERE name='{input_name}'
                                 ORDER BY time ASC
                                 """)
-                        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
-                            if saved_image_data_base_string is not None:
-                                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                                image_data_base = base64.b64encode(image_data_base_string_data)
-                                saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
-                                responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                        try: 
+                            for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
+                                if saved_image_data_base_string is not None:
+                                    image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                                    image_data_base = base64.b64encode(image_data_base_string_data)
+                                    saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
+                                    responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                                else:
+                                    responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
+                            if uploaded_file is not None:
+                                responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                                end_time = t.time()
+                                output = responses.text
+                                ### Insert into a table
+                                SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
+                                cur.execute(SQL, data)
+                                con.commit()
                             else:
-                                responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
-                        if uploaded_file is not None:
-                            responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                            end_time = t.time()
-                            output = responses.text
-                            ### Insert into a table
-                            SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
-                            cur.execute(SQL, data)
-                            con.commit()
-                        else:
-                            responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                            end_time = t.time()
-                            output = responses.text
-                            ### Insert into a table
-                            SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                            cur.execute(SQL, data)
-                            con.commit()
+                                responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
+                                end_time = t.time()
+                                output = responses.text
+                                ### Insert into a table
+                                SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
+                                data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
+                                cur.execute(SQL, data)
+                                con.commit()
+                        except:
+                                responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
+                                end_time = t.time()
+                                output = responses.text
+                            
                 prune = st.button(":red[Prune History]")
                 if prune:
                     cur.execute(f"""
