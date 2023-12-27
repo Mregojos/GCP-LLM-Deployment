@@ -27,8 +27,8 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    page_icon=":cloud:" ,
                    layout="wide")
 
-# Title
-st.write("#### Multimodal Model Deployment ")
+#------------Title----------------------#
+st.write("#### Multimodal Model Deployment")
 
 #----------Connect to a database----------# 
 def connection():
@@ -91,7 +91,7 @@ def models():
     }
     chat_model = ChatModel.from_pretrained("chat-bison")
     chat = chat_model.start_chat(
-        context=f"""I am an agent for Matt."""
+        context=f"""I am an intelligent agent."""
     )
 
     #----------Vertex AI Code----------#
@@ -102,7 +102,7 @@ def models():
     }
     code_chat_model = CodeChatModel.from_pretrained("codechat-bison")
     code_chat = code_chat_model.start_chat(
-        context=f"""I am an agent for Matt."""
+        context=f"""I am an intelligent agent."""
     )
     
 
