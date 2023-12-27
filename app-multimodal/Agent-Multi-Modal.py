@@ -174,6 +174,16 @@ def multimodal(con, cur):
         #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
             st.info("Guest daily limit has reached.")
+            # If the limit reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" not included.
+            guest_DB = ["chats", "chats_mmm", "vision_db", "multimodal", "multimodal_DB", "guest_chats", "total_prompts"]
+            for DB in guest_DB:
+                cur.execute(f"""
+                        DELETE  
+                        FROM {DB}
+                        WHERE name='Guest'
+                        """)
+            con.commit()
+            # st.info(prompt_prune_info)
 
         #------------------ Multimodal Chats --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
@@ -810,13 +820,14 @@ def multimodal(con, cur):
         cur.execute(SQL, data)
         con.commit()
         
-    #----------Prune Guest Limits using Admin---------#
+    #----------Prune Admin history and Guest limits using Admin---------#
     if (GUEST == False):
         with st.sidebar:
-            guest_history = st.checkbox("Guest History")
-            if guest_history:
-                prune_guest_limit = st.button(":red[Prune Guest History Limit and Prompts]")
-                if prune_guest_limit:
+            prompt_history = st.checkbox("Prompt History")
+            if prompt_history:
+                prune_all_prompt_history = st.button(":red[Prune Promt History and Guest Limit]")
+                if prune_all_prompt_history:
+                    # Guest Limit
                     cur.execute(f"""
                                 DELETE  
                                 FROM multimodal_guest_chats
@@ -832,7 +843,16 @@ def multimodal(con, cur):
                                 WHERE name='Guest'
                                 """)
                     con.commit()
-                    st.info(f"Prompt history by Guest is successfully deleted.")
+                    # All Admin DB
+                    admin_DB = ["chats", "chats_mmm", "vision_db", "multimodal", "multimodal_DB", "guest_chats", "total_prompts"]
+                    for DB in admin_DB:
+                        cur.execute(f"""
+                                DELETE  
+                                FROM {DB}
+                                WHERE name='{input_name}'
+                                """)
+                    con.commit()
+                    st.info(f"Prompt history by Admin and Guest is successfully deleted.")
                 
     #---------------- Insert into a table (total_prompts) ----------------#
     if button:
