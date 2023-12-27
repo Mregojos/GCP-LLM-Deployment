@@ -446,7 +446,8 @@ def multimodal(con, cur):
                     output = prompt_error
                     end_time = t.time()
 
-            #-------------------Vision with DB--------------------#
+            #-------------------Vision (One Turn) with DB--------------------#
+            # Vision (One Turn) with Database only; No memory of the past conversations.
             if model == "Vision (One Turn) with DB":
                 if prompt_user == "":
                     prompt_user = "What is the image? Tell me more about the image."  
@@ -523,7 +524,7 @@ def multimodal(con, cur):
                 button = st.button("Send")
                 if button:
                     current_start_time = t.time() 
-                    current_model = "Chat with DB"
+                    current_model = "Chat Only with DB"
                     cur.execute(f"""
                             SELECT * 
                             FROM chats_mmm
@@ -557,8 +558,7 @@ def multimodal(con, cur):
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
                         cur.execute(SQL, data)
                         con.commit()
-                        
-                        
+            
                 prune = st.button(":red[Prune History]")
                 if prune:
                     cur.execute(f"""
@@ -746,8 +746,8 @@ def multimodal(con, cur):
                             """)
                     for id, name, prompt, output, model, time in cur.fetchall():
                         prompt_history = prompt_history + "\n " + f"{name}: {prompt}" + "\n " + f"Model Output: {output}"
-                    response = code_chat.send_message(prompt_history, **chat_parameters)
-                    response = code_chat.send_message(prompt_user, **chat_parameters)
+                    response = code_chat.send_message(prompt_history, **code_parameters)
+                    response = code_chat.send_message(prompt_user, **code_parameters)
                     if response != " ":
                         output = response.text
                     elif response == "" or response == None:
