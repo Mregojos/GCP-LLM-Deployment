@@ -165,7 +165,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Chat Only", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Only with DB", "Chat Only (Old Version)", "Code (Old Version)", "Chat Only (New vs Old Version)"]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Chat Only", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Only with DB", "Chat Only (Old Version)", "Code (Old Version)", "Chat Only (Latest vs Old Version)"]))
             prompt_user = st.text_area("Prompt")
             uploaded_file = None
             current_image_detail = ""
@@ -813,8 +813,8 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
  
-    #-------------------Comparison: Chat Only (New vs Old Version)---------------------------------------#
-    if model == "Chat Only (New vs Old Version)":
+    #-------------------Comparison: Chat Only (Latest vs Old Version)---------------------------------------#
+    if model == "Chat Only (Latest vs Old Version)":
         prompt_user_chat = st.chat_input("What do you want to talk about?")
         with st.sidebar:
             button = st.button("Send")
@@ -839,9 +839,9 @@ def multimodal(con, cur):
         if button or prompt_user_chat:
             if prompt_user_chat:
                 prompt_user = prompt_user_chat
-            #-------------------Chat Only with DB New Version---------------------#
+            #-------------------Chat Only with DB Latest Version---------------------#
             current_start_time = t.time() 
-            current_model = "Chat Only with DB"
+            current_model = "Latest Version"
             cur.execute(f"""
                     SELECT * 
                     FROM chats_mmm
@@ -875,7 +875,7 @@ def multimodal(con, cur):
 
             #-------------------Chat Only Old Version---------------------#
             current_start_time = t.time()
-            current_model = "Chat Only (Old Version)"
+            current_model = "Old Version"
             cur.execute(f"""
                     SELECT * 
                     FROM chats
@@ -911,6 +911,7 @@ def multimodal(con, cur):
         col_A, col_B = st.columns(number_columns)
         
         with col_A:
+            #-------------------Chat Only with DB Latest Version---------------------#
             cur.execute(f"""
             SELECT * 
             FROM chats_mmm
@@ -927,6 +928,7 @@ def multimodal(con, cur):
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
         
         with col_B:
+            #-------------------Chat Only Old Version---------------------#
             cur.execute(f"""
             SELECT * 
             FROM chats
