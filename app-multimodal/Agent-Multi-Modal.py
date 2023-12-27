@@ -158,7 +158,7 @@ def multimodal(con, cur):
     #------------------ prompt_info ------------------#
     prompt_history = "You are an intelligent Agent."
     limited_prompt = "For Multimodal Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-    prompt_prune_info = f"Prompt history by {input_name} is successfully deleted."
+    prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
     prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
 
     with st.sidebar:
@@ -825,7 +825,7 @@ def multimodal(con, cur):
         with st.sidebar:
             prompt_history = st.checkbox("Prompt History")
             if prompt_history:
-                prune_all_prompt_history = st.button(":red[Prune Promt History and Guest Limit]")
+                prune_all_prompt_history = st.button(":red[Prune Prompt History and Guest Limit]")
                 if prune_all_prompt_history:
                     # Guest Limit
                     cur.execute(f"""
@@ -852,7 +852,7 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"Prompt history by Admin and Guest is successfully deleted.")
+                    st.info(f"Prompt history by Admin and Guest was successfully deleted.")
                 
     #---------------- Insert into a table (total_prompts) ----------------#
     if button:
