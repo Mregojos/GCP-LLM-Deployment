@@ -848,7 +848,7 @@ if __name__ == '__main__':
         with st.sidebar:
             st.header(":computer: Multimodal Agent ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
-            st.write(f":violet[Your chat will be stored in a database.]")
+            st.caption(f":violet[Your chat will be stored in a database.]")
             st.caption(":warning: :red[Do not add sensitive data.]")
             # st.write("Login or Continue as a guest")
             login = st.checkbox("Login")
