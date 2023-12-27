@@ -1,5 +1,6 @@
 # use `nano Makefile` to edit this file
 # run `make`
+# run `make [stage name]` e.g., make run_test
 
 target: print
 
@@ -16,4 +17,5 @@ cleanup:
 	sh cleanup*sh
 
 run_test:
-	sh test.sh
+	sh test/test.sh
+	python test/test.py
