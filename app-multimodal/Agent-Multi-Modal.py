@@ -813,16 +813,27 @@ def multimodal(con, cur):
     #----------Prune Guest Limits using Admin---------#
     if (GUEST == False):
         with st.sidebar:
-            prune_guest_limit = st.button(":red[Prune Guest History Limit]")
-            if prune_guest_limit:
-                cur.execute(f"""
-                            DELETE  
-                            FROM multimodal_guest_chats
-                            WHERE name='Guest'
-                            """)
-                con.commit()
-                st.info(f"Prompt history by Guest is successfully deleted.")
-
+            guest_history = st.checkbox("Guest History")
+            if guest_history:
+                prune_guest_limit = st.button(":red[Prune Guest History Limit and Prompts]")
+                if prune_guest_limit:
+                    cur.execute(f"""
+                                DELETE  
+                                FROM multimodal_guest_chats
+                                WHERE name='Guest'
+                                """)
+                    con.commit()
+                    # All Guest DB
+                    guest_DB = ["chats", "chats_mmm", "vision_db", "multimodal", "multimodal_DB", "multimodal_guest_chats", "guest_chats", "total_prompts"]
+                    for DB in guest_DB:
+                        cur.execute(f"""
+                                DELETE  
+                                FROM {DB}
+                                WHERE name='Guest'
+                                """)
+                    con.commit()
+                    st.info(f"Prompt history by Guest is successfully deleted.")
+                
     #---------------- Insert into a table (total_prompts) ----------------#
     if button:
         SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
