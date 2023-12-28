@@ -27,7 +27,7 @@ make run_test
 sh cleanup-mmm.sh
 
 ---
-# Using Makefile
+# Using makefile
 # Environment Variables
 source env*
 

@@ -1,6 +1,6 @@
-# use `nano Makefile` to edit this file
+# use `nano makefile` to edit this file
 # run `make`
-# run `make [stage name]` e.g., make run_test
+# run `make [target name]` e.g., make run_test
 
 target: print
 
