@@ -11,38 +11,36 @@
 
 ## Setup
 ```sh
-# Infra
+# Environment Variables
 source env*
+
+# Infra
 sh infra*
 
 # Dev
-source env*
 sh app-dev-mmm.sh
 
 # Test
-source env*
 make run_test
 
 # Cleanup
-source env*
 sh cleanup-mmm.sh
 
 ---
 # Using Makefile
-# Infra
+# Environment Variables
 source env*
+
+# Infra
 make infra_setup
 
 # Dev
-source env*
 make dev_setup
 
 # Test
-source env*
 make run_test
 
 # Cleanup
-source env*
 make cleanup
 ```
 
