@@ -5,10 +5,12 @@
 * To test the new multimodal model capabilities
 * To deploy the new multimodal model using GCP services
 
+---
 ## Prerequisite
 * Google Cloud Account
 * Google Cloud Owner Role
 
+---
 ## Setup
 ```sh
 # Environment Variables
@@ -18,13 +20,13 @@ source env*
 sh infra*
 
 # Dev
-sh app-dev-mmm.sh
+sh app-dev-multimodal.sh
 
 # Test
 make run_test
 
 # Cleanup
-sh cleanup-mmm.sh
+sh cleanup-multimodal.sh
 
 ---
 # Using makefile
@@ -44,6 +46,7 @@ make run_test
 make cleanup
 ```
 
+---
 ## Screenshot
 
 ![Screenshot](picture/screenshot.png)
