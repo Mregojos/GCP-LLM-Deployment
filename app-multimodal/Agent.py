@@ -103,7 +103,7 @@ def models():
     }
     chat_model = ChatModel.from_pretrained("chat-bison")
     chat = chat_model.start_chat(
-        context=f"""I am an intelligent agent."""
+        # context=f"""I am an intelligent agent."""
     )
 
     #----------Vertex AI Code----------#
@@ -114,7 +114,7 @@ def models():
     }
     code_chat_model = CodeChatModel.from_pretrained("codechat-bison")
     code_chat = code_chat_model.start_chat(
-        context=f"""I am an intelligent agent."""
+        # context=f"""I am an intelligent agent."""
     )
     
 
@@ -133,6 +133,7 @@ def multimodal(con, cur):
     round_number = 2
     number_columns = 2
     character_limit = 10000
+    character_limit_w = "ten thousand characters"
     output = ""
     current_model = ""
     
@@ -159,7 +160,7 @@ def multimodal(con, cur):
             total_count = total
             # st.write(total_count)
     
-    #------------------ Info --------------------------#
+    #------------------ Info and Sample prompts  --------------------------#
     if GUEST == False or (GUEST == True and total_count < LIMIT):
         st.info("""
                 You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
@@ -172,14 +173,6 @@ def multimodal(con, cur):
                 * Tell me a funny quote related to Cloud Computing
                 """)
     
-    #------------------ prompt_info ------------------#
-    prompt_history = "You are an intelligent Agent."
-    limited_prompt = "For Multimodal Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-    chat_limited_prompt = "For Chat Text Only Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-    prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
-    prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
-    prompt_user_chat_ = "What do you want to talk about?"
-
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
@@ -189,6 +182,23 @@ def multimodal(con, cur):
             current_image_detail = ""
             image_data_base_string = ""
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+
+        #------------------ prompt_info ------------------#
+        prompt_history = "You are an intelligent Agent."
+        
+        multimodal_info = f"For :violet[{model}] Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        multimodal_db_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        vision_info = f":violet[{model}] analyzes the photo you uploaded."
+        vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
+        chat_info = f"For :violet[{model}] Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        chat_db_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
+        chat_old_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        code_old_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        
+        prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
+        prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
+        prompt_user_chat_ = "What do you want to talk about?"
 
         #------------------ Guest limit --------------------------#
         if GUEST == True and total_count >= LIMIT:
@@ -286,6 +296,8 @@ def multimodal(con, cur):
                     #        st.write(f"Exception: {e}")
                     #    output = "Sorry about that. Please prompt it again."
                     
+            st.info(multimodal_info)
+            
             prune = st.button(":red[Prune History]")
             if prune:
                 cur.execute(f"""
@@ -296,10 +308,6 @@ def multimodal(con, cur):
                 con.commit()
                 st.info(prompt_prune_info)
                 st.rerun()
-
-
-            if total_prompt == total_prompt_limit: 
-                st.info(limited_prompt) 
       
         cur.execute(f"""
         SELECT * 
@@ -417,7 +425,7 @@ def multimodal(con, cur):
                                     """)
                         con.commit()
                         
-            st.info("Multimodal with DB (Memory) is limited to ten thousand characters only. Once it reaches the ten thousand characters, the memory will be deleted, but the prompt history can still be viewed in the conversation.")
+            st.info(multimodal_db_info)
                     # st.write(characters)
 
             prune = st.button(":red[Prune History]")
@@ -486,7 +494,7 @@ def multimodal(con, cur):
                 output = prompt_error
                 end_time = t.time()
                 
-            st.info("Vision (One Turn) analyzes the photo you uploaded.")
+            st.info(vision_info)
                     
         if uploaded_file is not None and button:
             message = st.chat_message("assistant")
@@ -552,7 +560,7 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit()
             
-            st.info("Vision (One Turn) with DB analyzes the photo you uploaded and saves to the database. This model does not have chat capability.")
+            st.info(vision_db_info)
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -631,7 +639,7 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit()       
 
-            st.info(chat_limited_prompt) 
+            st.info(chat_info) 
             prune = st.button(":red[Prune History]")
             if prune:
                 cur.execute(f"""
@@ -719,7 +727,7 @@ def multimodal(con, cur):
                         con.commit()
                     # st.write(characters)
                         
-            st.info("Chat Text Only with DB (Memory) Model is limited to ten thousand characters only. Once it reaches the ten thousand characters, the memory will be deleted, but the prompt history can still be viewed in the conversation.")
+            st.info(chat_db_info)
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -855,7 +863,7 @@ def multimodal(con, cur):
                         con.commit()
                     # st.write(characters)
 
-            st.info(f"{model} compares the latest model to the old model version.")
+            st.info(chat_latest_old_info)
             
             prune = st.button(":red[Prune History]")
             if prune:
@@ -967,7 +975,7 @@ def multimodal(con, cur):
                         con.commit()
                     # st.write(characters)
                         
-            st.info("Chat Text Only (Old Version) Model is limited to ten thousand characters only. Once it reaches the ten thousand characters, the memory will be deleted, but the prompt history can still be viewed in the conversation.")
+            st.info(chat_old_info)
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -1037,7 +1045,7 @@ def multimodal(con, cur):
                         con.commit()
                     # st.write(characters)
                         
-            st.info("Code (Old Version) Model is limited to ten thousand characters only. Once it reaches the ten thousand characters, the memory will be deleted, but the prompt history can still be viewed in the conversation.")
+            st.info(code_old_info)
             
             prune = st.button(":red[Prune History]")
             if prune:
