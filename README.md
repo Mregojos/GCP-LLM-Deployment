@@ -44,8 +44,12 @@ make run_test
 make cleanup
 ```
 
+## Screenshot
+
+![Screenshot](picture/screenshot.png)
+
 
 ---
 ## Resources
-* Git Repository: https://github.com/mregojos/GCP-LLM-Deployment
+* Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
 * Model Deployment Repository: https://github.com/mregojos/model-deployment
