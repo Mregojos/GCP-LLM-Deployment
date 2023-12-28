@@ -5,7 +5,7 @@
 target: print
 
 print:
-	echo "It's working"
+	echo "Makefile's working."
 
 infra_setup:
 	sh infra*sh
