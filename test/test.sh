@@ -7,5 +7,6 @@ pip install psycopg2-binary -q
 echo "Finished: psycopg2-binary \n"
 
 # Check if the Cloud Run Endpoint is ready
+gcloud run services describe $APP_NAME --region $REGION
 
 # Check if the API is working
