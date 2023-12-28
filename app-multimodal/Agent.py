@@ -27,7 +27,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    page_icon=":cloud:" ,
                    layout="wide")
 
-#------------Title----------------------#
+#--------------Title----------------------#
 st.write("#### Multimodal Model Deployment")
 
 #----------Connect to a database----------# 
