@@ -161,8 +161,8 @@ def multimodal(con, cur):
             # st.write(total_count)
     
     #------------------ Info and Sample prompts  --------------------------#
-    if GUEST == False or (GUEST == True and total_count < LIMIT):
-        st.info("""
+    # if GUEST == False or (GUEST == True and total_count < LIMIT):
+    info_sample_prompts = """
                 You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
                 * What is Cloud Computing?
                 * What is Google Cloud?
@@ -171,7 +171,10 @@ def multimodal(con, cur):
                 * Tell me about different cloud services
                 * Explain Cloud Computing in simple terms
                 * Tell me a funny quote related to Cloud Computing
-                """)
+                """
+    vision_info_ = """
+                You can now upload images to analyze.
+                """
     
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
@@ -218,6 +221,7 @@ def multimodal(con, cur):
     #-------------------Conversation starts here---------------------#
     #-------------------Multimodal---------------------#
     if model == "Multimodal":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
             image = st.checkbox("Add a photo")
@@ -336,6 +340,7 @@ def multimodal(con, cur):
 
     #-------------------Multi-Modal with DB---------------------#
     if model == "Multimodal with DB":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
             #-------------------Multimodal with DB---------------------#
@@ -464,6 +469,7 @@ def multimodal(con, cur):
 
     #-------------------Vision---------------------#
     if model == "Vision (One Turn)":
+        st.info(vision_info_)
         with st.sidebar:
             if prompt_user == "":
                 prompt_user = "What is the image? Tell me more about the image."   
@@ -505,6 +511,7 @@ def multimodal(con, cur):
     #-------------------Vision with DB--------------------#
     if model == "Vision (One Turn) with DB":
         # Vision (One Turn) with Database only; No memory of the past conversations.
+        st.info(vision_info_)
         with st.sidebar:
             if prompt_user == "":
                 prompt_user = "What is the image? Tell me more about the image."  
@@ -588,6 +595,7 @@ def multimodal(con, cur):
             
     #-------------------Chat Text Only---------------------#
     if model == "Chat Text Only":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
             # Four prompts (short-memory) only
@@ -667,6 +675,7 @@ def multimodal(con, cur):
 
     #-------------------Chat Text Only with DB---------------------#
     if model == "Chat Text Only with DB":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
             button = st.button("Send")
@@ -756,6 +765,7 @@ def multimodal(con, cur):
             
     #-------------------Comparison: Chat Only (Latest vs Old Version)---------------------------------------#
     if model == "Chat Text Only (Latest vs Old Version)":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
             button = st.button("Send")
@@ -919,6 +929,7 @@ def multimodal(con, cur):
     #-------------------Old Version---------------------------------#
     #-------------------Chat Only (Old Version)---------------------#
     if model == "Chat Text Only (Old Version)":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar: 
             current_start_time = t.time()
@@ -989,6 +1000,7 @@ def multimodal(con, cur):
 
     #-------------------Code (Old Version)---------------------#
     if model == "Code (Old Version)":
+        st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input("What do you want to talk about?")
         with st.sidebar: 
             current_start_time = t.time()
