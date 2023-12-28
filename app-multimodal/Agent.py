@@ -53,10 +53,10 @@ def connection():
     cur.execute("CREATE TABLE IF NOT EXISTS vision_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, saved_image_data_base_string varchar)")
 
     # Chat Text Only
-    # cur.execute("DROP TABLE chats_mmm")
-    cur.execute("CREATE TABLE IF NOT EXISTS chats_mmm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_characters int, total_output_characters int)")
-    # cur.execute("DROP TABLE chats_mmm_db")
-    cur.execute("CREATE TABLE IF NOT EXISTS chats_mmm_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_characters int, total_output_characters int)")
+    # cur.execute("DROP TABLE chats_mm")
+    cur.execute("CREATE TABLE IF NOT EXISTS chats_mm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
+    # cur.execute("DROP TABLE chats_mm_db")
+    cur.execute("CREATE TABLE IF NOT EXISTS chats_mm_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_characters int, total_output_characters int)")
     # cur.execute("DROP TABLE chats")
     cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time int, end_time int, total_characters int, total_output_characters int)")
 
@@ -248,7 +248,7 @@ def multimodal(con, cur):
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
-                    st.info("Prompt can't be empty")
+                    st.info("Prompt cannot be empty.")
                     current_model = "Multimodal"
                 else:
                     current_start_time = t.time() 
@@ -359,61 +359,66 @@ def multimodal(con, cur):
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
-                current_start_time = t.time() 
-                current_model = "Multimodal with DB"
-                cur.execute(f"""
-                        SELECT * 
-                        FROM multimodal_db
-                        WHERE name='{input_name}'
-                        ORDER BY time ASC
-                        """)
-                try:
-                    for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                         \n {name}: {prompt} 
-                                         \n Model Output: {output}
-                                         \n ------------
-                                         \n
-                                          """
-
-                    response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                    if uploaded_file is not None:
-                        response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
-                        output = response.text
-                    else:
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        output = response.text
-                except:
-                    output = prompt_error
-                # Print out expection
-                # except Exception as e:
-                #    with st.sidebar:
-                #        st.write(f"Exception: {e}")
-                #    output = "Sorry about that. Please prompt it again."
-
-                ### Insert into a table
-                input_characters = len(prompt_user)
-                characters = len(prompt_history)
-                output_characters = len(output)
-                end_time = t.time() 
-                SQL = "INSERT INTO multimodal_db (name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, saved_image_data_base_string, total_input_characters, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                data = (input_name, prompt_user, prompt_user, output, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, characters, output_characters)
-                cur.execute(SQL, data)
-                con.commit()
-
-                # For Character limit
-                if characters >= character_limit:
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                    current_model = "Multimodal with DB"
+                else:
+                    current_start_time = t.time() 
+                    current_model = "Multimodal with DB"
                     cur.execute(f"""
-                                UPDATE multimodal_db
-                                SET prompt=NULL
-                                """)
-                    cur.execute(f"""
-                                UPDATE multimodal_db
-                                SET output=NULL
-                                """)
+                            SELECT * 
+                            FROM multimodal_db
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    try:
+                        for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_characters, total_output_characters in cur.fetchall():
+                            prompt_history = f"""
+                                             \n {name}: {prompt} 
+                                             \n Model Output: {output}
+                                             \n ------------
+                                             \n
+                                              """
+
+                        response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                        if uploaded_file is not None:
+                            response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
+                            output = response.text
+                        else:
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                            output = response.text
+                    except:
+                        output = prompt_error
+                    # Print out expection
+                    # except Exception as e:
+                    #    with st.sidebar:
+                    #        st.write(f"Exception: {e}")
+                    #    output = "Sorry about that. Please prompt it again."
+
+                    ### Insert into a table
+                    input_characters = len(prompt_user)
+                    characters = len(prompt_history)
+                    output_characters = len(output)
+                    end_time = t.time() 
+                    SQL = "INSERT INTO multimodal_db (name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, saved_image_data_base_string, total_input_characters, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, prompt_user, output, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, characters, output_characters)
+                    cur.execute(SQL, data)
                     con.commit()
+
+                    # For Character limit
+                    if characters >= character_limit:
+                        cur.execute(f"""
+                                    UPDATE multimodal_db
+                                    SET prompt=NULL
+                                    """)
+                        cur.execute(f"""
+                                    UPDATE multimodal_db
+                                    SET output=NULL
+                                    """)
+                        con.commit()
+                        
             st.info("Multimodal with DB (Memory) is limited to ten thousand characters only. Once it reaches the ten thousand characters, the memory will be deleted, but the prompt history can still be viewed in the conversation.")
-                # st.write(characters)
+                    # st.write(characters)
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -480,6 +485,8 @@ def multimodal(con, cur):
             except:
                 output = prompt_error
                 end_time = t.time()
+                
+            st.info("Vision (One Turn) analyzes the photo you uploaded.")
                     
         if uploaded_file is not None and button:
             message = st.chat_message("assistant")
@@ -530,26 +537,22 @@ def multimodal(con, cur):
                                 responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
                         if uploaded_file is not None:
                             responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                            end_time = t.time()
                             output = responses.text
-                            ### Insert into a table
-                            SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
-                            cur.execute(SQL, data)
-                            con.commit()
+                            end_time = t.time()
                         else:
                             responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                            end_time = t.time()
                             output = responses.text
-                            ### Insert into a table
-                            SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time) VALUES(%s, %s, %s, %s, %s, %s, %s);"
-                            data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time)
-                            cur.execute(SQL, data)
-                            con.commit()
                     except:
                             responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                            end_time = t.time()
                             output = responses.text
+                            
+                    ### Insert into a table
+                    SQL = "INSERT INTO vision_db (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string) VALUES(%s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string)
+                    cur.execute(SQL, data)
+                    con.commit()
+            
+            st.info("Vision (One Turn) with DB analyzes the photo you uploaded and saves to the database. This model does not have chat capability.")
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -587,26 +590,24 @@ def multimodal(con, cur):
                 current_model = "Chat Text Only"
                 cur.execute(f"""
                         SELECT * 
-                        FROM chats_mmm
+                        FROM chats_mm
                         WHERE name='{input_name}'
                         ORDER BY time ASC
                         """)
                 try:
-                    for id, name, prompt, output, model, time, start_time, end_time, total_characters, total_output_characters in cur.fetchall():
+                    for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                         response = mm_chat.send_message(prompt, generation_config=mm_config)
                     response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                     output = response.text
-                    output_characters = len(output)
-                    characters = len(prompt_user)
-                    end_time = t.time()
                 except Exception as e:
                     # st.write(f"Exception: {e}")
                     output = prompt_error
-                    output_characters = len(output)
-                    characters = len(prompt_user)
-                    end_time = t.time() 
+                    
+                output_characters = len(output)
+                characters = len(prompt_user)
+                end_time = t.time() 
                 ### Insert into a table
-                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time, total_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                SQL = "INSERT INTO chats_mmm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                 data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
                 cur.execute(SQL, data)
                 con.commit()                        
@@ -627,11 +628,11 @@ def multimodal(con, cur):
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
-        for id, name, prompt, output, model, time, start_time, end_time, total_characters, total_output_characters in cur.fetchall():
+        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
             message.text(f"{prompt}")
-            message.caption(f"{time} | Input Characters: {total_characters}")
+            message.caption(f"{time} | Input Characters: {total_input_characters}")
             message = st.chat_message("assistant")
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
