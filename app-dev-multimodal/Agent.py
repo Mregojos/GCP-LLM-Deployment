@@ -246,14 +246,12 @@ def multimodal(con, cur):
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
             button = st.button("Send")   
             if button or prompt_user_chat:
-                prompt_history = ""
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                else:
+                if prompt_user != "":
                     current_start_time = t.time() 
-
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal
