@@ -189,12 +189,12 @@ def multimodal(con, cur):
         #------------------ prompt_info ------------------#
         prompt_history = "You are an intelligent Agent."
         
-        multimodal_info = f":violet[{model}  Model]. This model's memory stores the prompt history only."
+        multimodal_info = f":violet[{model}  Model]. This model stores prompt history only."
         multimodal_four_turn_info = f"For :violet[{model} (Four Turn) Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
-        chat_info = f":violet[{model}  Model]. This model's memory stores the prompt history only."
+        chat_info = f":violet[{model}  Model]. This model stores prompt history only."
         chat_four_turn_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         chat_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
@@ -228,7 +228,7 @@ def multimodal(con, cur):
         with st.sidebar:
             image = st.checkbox("Add a photo")
             if image:
-                uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+                uploaded_file = st.file_uploader("Upload a photo", type=["png"])
                 if uploaded_file is not None:
                     image_data = uploaded_file.read()
                     image_name = uploaded_file.name
@@ -250,7 +250,7 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                if prompt_user != "":
+                else:
                     current_start_time = t.time() 
                     cur.execute(f"""
                             SELECT * 
