@@ -173,13 +173,13 @@ def multimodal(con, cur):
                 * Tell me a funny quote related to Cloud Computing
                 """
     vision_info_ = """
-                You can now upload images to analyze.
+                You can now upload an image to analyze.
                 """
     
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Text Only", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal (Four Turn)", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Text Only", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
             prompt_user = st.text_area("Prompt")
             uploaded_file = None
             current_image_detail = ""
@@ -189,11 +189,12 @@ def multimodal(con, cur):
         #------------------ prompt_info ------------------#
         prompt_history = "You are an intelligent Agent."
         
-        multimodal_info = f"For :violet[{model}] (Four Turn) Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        multimodal_info = f":violet[{model}  Model]. This model's memory stores the prompt history only."
+        multimodal_four_turn_info = f"For :violet[{model} (Four Turn) Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
-        chat_info = f"For :violet[{model}] Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        chat_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         chat_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
         chat_old_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
@@ -222,9 +223,122 @@ def multimodal(con, cur):
 
     #-------------------Conversation starts here---------------------#
     #-------------------Multimodal---------------------#
+    # It stores the prompts only
     if model == "Multimodal":
+        current_model = "Multimodal"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
+        with st.sidebar:
+            image = st.checkbox("Add a photo")
+            if image:
+                uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+                if uploaded_file is not None:
+                    image_data = uploaded_file.read()
+                    image_name = uploaded_file.name
+                    st.image(image_data, image_name)
+                    image_data_base = base64.b64encode(image_data)
+                    image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                    # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                    # st.image(image_data_base_string_data)
+                    image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
+                    responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
+                    current_image_detail = responses.text
+                else:
+                    image_data_base_string = ""
+            
+            current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+            button = st.button("Send")   
+            if button or prompt_user_chat:
+                prompt_history = ""
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                else:
+                    current_start_time = t.time() 
+
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM multimodal
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)
+                    try:
+                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                            prompt_history = f"""{prompt_history}
+                                             \n prompt {id}: {prompt} 
+                                              """
+                        if prompt_history != "":
+                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                        if uploaded_file is not None:
+                            response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
+                            output = response.text
+                        if uploaded_file is None:
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                            output = response.text
+                    except:
+                        output = prompt_error
+
+                    ### Insert into a table
+                    input_characters = len(prompt_user)
+                    output_characters = len(output)
+                    end_time = t.time() 
+                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, output_characters)
+                    cur.execute(SQL, data)
+                    con.commit()
+                    # Print out expection
+                    # except Exception as e:
+                    #    with st.sidebar:
+                    #        st.write(f"Exception: {e}")
+                    #    output = "Sorry about that. Please prompt it again."
+                    
+            st.info(multimodal_info)
+            
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute(f"""
+                            DELETE  
+                            FROM multimodal
+                            WHERE name='{input_name}'
+                            """)
+                cur.execute("DROP TABLE multimodal")
+                con.commit()
+                st.info(prompt_prune_info)
+                st.rerun()
+                
+
+      
+        cur.execute(f"""
+        SELECT * 
+        FROM multimodal
+        WHERE name='{input_name}'
+        ORDER BY time ASC
+        """)
+        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+            message = st.chat_message("user")
+            message.write(f":blue[{name}]") 
+            if saved_image_data_base_string is not "":
+                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                message.image(image_data_base_string_data)
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}" )                 
+            elif saved_image_data_base_string is "":
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+        model = "Multimodal"
+        
+    #-------------------Multimodal (Four Turn)---------------------#
+    if model == "Multimodal (Four Turn)":
+        current_model = "Multimodal (Four Turn)"
+        st.info(info_sample_prompts)
+        prompt_user_chat = st.chat_input("What do you want to talk about? ")
         with st.sidebar:
             image = st.checkbox("Add a photo")
             if image:
@@ -266,10 +380,9 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                    current_model = "Multimodal"
+                    
                 else:
                     current_start_time = t.time() 
-                    current_model = "Multimodal"
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal
@@ -303,7 +416,7 @@ def multimodal(con, cur):
                     #        st.write(f"Exception: {e}")
                     #    output = "Sorry about that. Please prompt it again."
                     
-            st.info(multimodal_info)
+            st.info(multimodal_four_turn_info)
             
             prune = st.button(":red[Prune History]")
             if prune:
@@ -315,7 +428,20 @@ def multimodal(con, cur):
                 con.commit()
                 st.info(prompt_prune_info)
                 st.rerun()
-      
+                
+            #prune = st.button(":red[Prune History (id)]")
+            #if prune:
+            #    cur.execute(f"""
+            #                DELETE FROM multimodal
+            #                WHERE id IN (SELECT id
+            #                            FROM multimodal
+            #                            ORDER BY id ASC)
+            #                """)
+            #    con.commit()
+            #    st.info(prompt_prune_info)
+            #    st.rerun()
+
+
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -339,7 +465,8 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-
+        model = "Multimodal (Four Turn)"
+        
     #-------------------Multi-Modal with DB---------------------#
     if model == "Multimodal with DB":
         st.info(info_sample_prompts)
@@ -1113,6 +1240,7 @@ def multimodal(con, cur):
                                 FROM multimodal_guest_chats
                                 WHERE name='Guest'
                                 """)
+                    cur.execute("DROP TABLE multimodal_guest_chats")
                     con.commit()
                     st.info(f"Guest Limit was successfully deleted.")
                 
@@ -1126,6 +1254,7 @@ def multimodal(con, cur):
                                 FROM {DB}
                                 WHERE name='Guest'
                                 """)
+                        cur.execute(f"DROP TABLE {DB}")
                     con.commit()
                     st.info(f"Guest DB was successfully deleted.")
                     
@@ -1139,6 +1268,7 @@ def multimodal(con, cur):
                                 FROM {DB}
                                 WHERE name='{input_name}'
                                 """)
+                        cur.execute(f"DROP TABLE {DB}")
                     con.commit()
                     st.info(f"Admin DB was successfully deleted.")
                     
@@ -1149,6 +1279,7 @@ def multimodal(con, cur):
                             DELETE  
                             FROM total_prompts
                             """)
+                    cur.execute("DROP TABLE total_prompts")
                     con.commit()
                     st.info(f"Total Prompts DB was successfully deleted.")
                     
@@ -1159,6 +1290,7 @@ def multimodal(con, cur):
                             DELETE  
                             FROM chat_view_counter
                             """)
+                    cur.execute("DROP TABLE chat_view_counter")
                     con.commit()
                     st.info(f"Chat View Counter DB was successfully deleted.")
                 
