@@ -145,7 +145,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 18
+    LIMIT = 2
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -213,13 +213,9 @@ def multimodal(con, cur):
             # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" is not included.
             guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
             for DB in guest_DB:
-                cur.execute(f"""
-                        DELETE  
-                        FROM {DB}
-                        WHERE name='Guest'
-                        """)
+                cur.execute(f"DROP TABLE {DB}")
             con.commit()
-            # st.info(prompt_prune_info)
+            
         st.info("Guest daily limit has been reached.")
 
     #-------------------Conversation starts here---------------------#
@@ -292,18 +288,16 @@ def multimodal(con, cur):
             
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM multimodal
-                            WHERE name='{input_name}'
-                            """)
+                # cur.execute(f"""
+                #            DELETE  
+                #            FROM multimodal
+                #            WHERE name='{input_name}'
+                #            """)
                 cur.execute("DROP TABLE multimodal")
-                con.commit()
                 st.info(prompt_prune_info)
+                con.commit()
                 st.rerun()
                 
-
-      
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -393,11 +387,9 @@ def multimodal(con, cur):
                         else:
                             response = mm_chat.send_message(prompt_user, generation_config=mm_config)
                             output = response.text
-                    except Exception as e:
-                        # st.write(f"Exception: {e}")
+                    except:
                         output = prompt_error
 
-                    ### Insert into a table
                     input_characters = len(prompt_user)
                     output_characters = len(output)
                     end_time = t.time() 
@@ -405,38 +397,16 @@ def multimodal(con, cur):
                     data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, output_characters)
                     cur.execute(SQL, data)
                     con.commit()
-                    # Print out expection
-                    # except Exception as e:
-                    #    with st.sidebar:
-                    #        st.write(f"Exception: {e}")
-                    #    output = "Sorry about that. Please prompt it again."
                     
             st.info(multimodal_four_turn_info)
             
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM multimodal
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE multimodal")
                 st.info(prompt_prune_info)
+                con.commit()
                 st.rerun()
                 
-            #prune = st.button(":red[Prune History (id)]")
-            #if prune:
-            #    cur.execute(f"""
-            #                DELETE FROM multimodal
-            #                WHERE id IN (SELECT id
-            #                            FROM multimodal
-            #                            ORDER BY id ASC)
-            #                """)
-            #    con.commit()
-            #    st.info(prompt_prune_info)
-            #    st.rerun()
-
-
         cur.execute(f"""
         SELECT * 
         FROM multimodal
@@ -464,6 +434,7 @@ def multimodal(con, cur):
         
     #-------------------Multi-Modal with DB---------------------#
     if model == "Multimodal with DB":
+        current_model = "Multimodal with DB"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
@@ -498,10 +469,10 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                    current_model = "Multimodal with DB"
+                    
                 else:
                     current_start_time = t.time() 
-                    current_model = "Multimodal with DB"
+                    
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal_db
@@ -559,13 +530,10 @@ def multimodal(con, cur):
 
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM multimodal_db
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE multimodal_db")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
                     
         cur.execute(f"""
         SELECT * 
@@ -590,6 +558,7 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output_history)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+        model = "Multimodal with DB"
 
     #-------------------Vision---------------------#
     if model == "Vision (One Turn)":
@@ -697,13 +666,10 @@ def multimodal(con, cur):
 
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM vision_db
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE vision_db")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
                 
         cur.execute(f"""
         SELECT * 
@@ -725,13 +691,6 @@ def multimodal(con, cur):
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
-            # Four prompts (short-memory) only
-            cur.execute(f"""
-                SELECT COUNT(*) 
-                FROM chats_mm
-                WHERE name='{input_name}'
-                """)
-
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
             button = st.button("Send")
             if button or prompt_user_chat:
@@ -771,13 +730,10 @@ def multimodal(con, cur):
             st.info(chat_info) 
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats_mm
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE chats_mm")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
                     
         cur.execute(f"""
         SELECT * 
@@ -851,13 +807,10 @@ def multimodal(con, cur):
             
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats_mm
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE chats_mm")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
                     
         cur.execute(f"""
         SELECT * 
@@ -943,13 +896,10 @@ def multimodal(con, cur):
 
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats_mm_db
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE chats_mm_db")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
                     
         cur.execute(f"""
         SELECT * 
@@ -970,6 +920,7 @@ def multimodal(con, cur):
     if model == "Chat Text Only (Latest vs Old Version)":
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
+        prompt_history = ""
         with st.sidebar:
             button = st.button("Send")
             if button or prompt_user_chat:
@@ -979,56 +930,34 @@ def multimodal(con, cur):
                     st.info("Prompt cannot be empty.")
                     current_model = "Chat Text Only with DB"
                 else:
-                    #-------------------Chat Only with DB Latest Version---------------------#
+                    #-------------------Chat Text Only Latest Version---------------------#
                     current_start_time = t.time() 
                     current_model = "Latest Version"
                     cur.execute(f"""
                             SELECT * 
-                            FROM chats_mm_db
+                            FROM chats_mm
                             WHERE name='{input_name}'
                             ORDER BY time ASC
-                            """)            
-                    for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                             \n ------------
-                                             \n {name}: {prompt} 
-                                             \n Model Output: {output}
-                                             \n ------------
-                                             \n
-                                              """
+                            """)                    
                     try:
-                        response = mm_chat.send_message(prompt_history, generation_config=mm_config)
+                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                            prompt_history = f"""{prompt_history}
+                                             \n prompt {id}: {prompt} 
+                                              """
+                        if prompt_history != "":
+                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
                         response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        if response != " ":
-                            output = response.text
-                        elif response == "" or response == None:
-                            output = prompt_error
-                        else:
-                            output = prompt_error
+                        output = response.text
                     except:
                         output = prompt_error
-         
-                    characters = len(prompt_history + prompt_user)
-                    input_characters = len(prompt_user)
-                    output_characters = len(output)
-                    end_time = t.time()
-                    SQL = "INSERT INTO chats_mm_db (name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, prompt_user, output, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit()
 
-                    # For Character limit
-                    if characters >= character_limit:
-                        cur.execute(f"""
-                                    UPDATE chats_mm_db
-                                    SET prompt=NULL
-                                    """)
-                        cur.execute(f"""
-                                    UPDATE chats_mm_db
-                                    SET output=NULL
-                                    """)
-                        con.commit()
-                    # st.write(characters)
+                    output_characters = len(output)
+                    characters = len(prompt_user)
+                    end_time = t.time() 
+                    SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                    cur.execute(SQL, data)
+                    con.commit() 
 
                     #-------------------Chat Only Old Version---------------------#
                     current_start_time = t.time()
@@ -1040,15 +969,12 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                         \n ------------
-                                         \n {name}: {prompt} 
-                                         \n Model Output: {output}
-                                         \n ------------
-                                         \n
-                                         """
+                        prompt_history = f"""{prompt_history}
+                                          \n prompt {id}: {prompt} 
+                                          """
                     try:
-                        response = chat.send_message(prompt_history, **chat_parameters)
+                        if prompt_history != "":
+                            response = chat.send_message(prompt_history, **chat_parameters)
                         response = chat.send_message(prompt_user, **chat_parameters)
                         output = response.text 
                     except:
@@ -1063,53 +989,33 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit()
                     
-                    # For Character limit
-                    if characters >= character_limit:
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET prompt=NULL
-                                    """)
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET output=NULL
-                                    """)
-                        con.commit()
-                    # st.write(characters)
-
             st.info(chat_latest_old_info)
             
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats_mm_db
-                            WHERE name='{input_name}'
-                            """)
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats
-                            WHERE name='{input_name}'
-                            """)
+                cur.execute("DROP TABLE chats_mm")
+                cur.execute("DROP TABLE chats")
                 con.commit()
+                st.rerun()
                 st.info(prompt_prune_info)
                 
         col_A, col_B = st.columns(number_columns)
         
         with col_A:
-            #-------------------Chat Only with DB Latest Version---------------------#
+            #-------------------Chat Text Only Latest Version---------------------#
             cur.execute(f"""
             SELECT * 
-            FROM chats_mm_db
+            FROM chats_mm
             WHERE name='{input_name}'
             ORDER BY time ASC
             """)
-            for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                 message = st.chat_message("user")
                 message.write(f":blue[{name}]") 
-                message.text(f"{input_prompt}")
+                message.text(f"{prompt}")
                 message.caption(f"{time} | Input Characters: {total_input_characters}")
                 message = st.chat_message("assistant")
-                message.markdown(output_history)
+                message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
         
         with col_B:
@@ -1193,14 +1099,11 @@ def multimodal(con, cur):
 
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE chats")
                 st.info(prompt_prune_info)
-
+                con.commit()
+                st.rerun()
+                
     #-------------------Code (Old Version)---------------------#
     if model == "Code (Old Version)":
         st.info(info_sample_prompts)
@@ -1264,13 +1167,10 @@ def multimodal(con, cur):
             
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute(f"""
-                            DELETE  
-                            FROM chats
-                            WHERE name='{input_name}'
-                            """)
-                con.commit()
+                cur.execute("DROP TABLE chats")
                 st.info(prompt_prune_info)
+                con.commit()
+                st.rerun()
             
     #-------------------Chat Only and Code (Old Version)---------------------#
     if model == "Chat Text Only (Old Version)" or model == "Code (Old Version)":
@@ -1303,68 +1203,39 @@ def multimodal(con, cur):
         with st.sidebar:
             prompt_history = st.checkbox("Prompt History")
             if prompt_history:
+                # Prune All
+                prune_all = st.button(":red[Prune All]")
                 
                 # Guest Limit
                 prune_multimodal_guest_chats = st.button(":red[Prune Guest Limit]")
-                if prune_multimodal_guest_chats:
-                    cur.execute(f"""
-                                DELETE  
-                                FROM multimodal_guest_chats
-                                WHERE name='Guest'
-                                """)
+                if prune_multimodal_guest_chats or prune_all:
                     cur.execute("DROP TABLE multimodal_guest_chats")
-                    con.commit()
                     st.info(f"Guest Limit was successfully deleted.")
-                
-                # All Guest DB
-                prune_guest_db = st.button(":red[Prune Guest DB]")
-                if prune_guest_db:
-                    guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
-                    for DB in guest_DB:
-                        cur.execute(f"""
-                                DELETE  
-                                FROM {DB}
-                                WHERE name='Guest'
-                                """)
-                        cur.execute(f"DROP TABLE {DB}")
                     con.commit()
-                    st.info(f"Guest DB was successfully deleted.")
-                    
-                # All Admin DB
-                prune_admin_db = st.button(":red[Prune Admin DB]")
-                if prune_admin_db:
+                
+                # All Guest and Admin DB
+                prune_db = st.button(":red[Prune Guest and Admin DB]")
+                if prune_db or prune_all:
                     admin_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
                     for DB in admin_DB:
-                        cur.execute(f"""
-                                DELETE  
-                                FROM {DB}
-                                WHERE name='{input_name}'
-                                """)
                         cur.execute(f"DROP TABLE {DB}")
                     con.commit()
                     st.info(f"Admin DB was successfully deleted.")
                     
                 # Prune Total Prompts
                 prune_total_prompts = st.button(":red[Prune Total Prompts DB]")
-                if prune_total_prompts:
-                    cur.execute(f"""
-                            DELETE  
-                            FROM total_prompts
-                            """)
+                if prune_total_prompts or prune_all:
                     cur.execute("DROP TABLE total_prompts")
-                    con.commit()
                     st.info(f"Total Prompts DB was successfully deleted.")
+                    con.commit()
                     
                 # Prune Chat View Counter
                 prune_chat_view_counter = st.button(":red[Prune Chat View Counter DB]")
-                if prune_chat_view_counter:
-                    cur.execute(f"""
-                            DELETE  
-                            FROM chat_view_counter
-                            """)
+                if prune_chat_view_counter or prune_all:
                     cur.execute("DROP TABLE chat_view_counter")
-                    con.commit()
                     st.info(f"Chat View Counter DB was successfully deleted.")
+                    con.commit()
+                    st.rerun()
                 
                 
     #---------------- Insert into a table (total_prompts) ----------------#
