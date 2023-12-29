@@ -255,10 +255,11 @@ def multimodal(con, cur):
             total_prompt =cur.fetchone()[0]
             if total_prompt <= total_prompt_limit:
                 if total_prompt < total_prompt_limit: 
-                    button = True 
+                    button = True
                     button = st.button("Send")
                 elif total_prompt >= total_prompt_limit:
                     button = False
+                    prompt_user_chat = False
                     
             if button or prompt_user_chat:
                 if prompt_user_chat:
@@ -324,21 +325,20 @@ def multimodal(con, cur):
         for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
-            if total_prompt <= 4:
-                if saved_image_data_base_string is not "":
-                    image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                    message.image(image_data_base_string_data)
-                    message.text(f"{prompt}")
-                    message.caption(f"{time} | Input Characters: {total_input_characters}")
-                    message = st.chat_message("assistant")
-                    message.markdown(output)
-                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}" )                 
-                elif saved_image_data_base_string is "":
-                    message.text(f"{prompt}")
-                    message.caption(f"{time} | Input Characters: {total_input_characters}")
-                    message = st.chat_message("assistant")
-                    message.markdown(output)
-                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+            if saved_image_data_base_string is not "":
+                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                message.image(image_data_base_string_data)
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}" )                 
+            elif saved_image_data_base_string is "":
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
 
     #-------------------Multi-Modal with DB---------------------#
     if model == "Multimodal with DB":
