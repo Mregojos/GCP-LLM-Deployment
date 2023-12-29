@@ -145,7 +145,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 18
+    LIMIT = 3
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -189,26 +189,27 @@ def multimodal(con, cur):
         #------------------ prompt_info ------------------#
         prompt_history = "You are an intelligent Agent."
         
-        multimodal_info = f"For :violet[{model}] Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-        multimodal_db_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        multimodal_info = f"For :violet[{model}] (Four Turn) Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
         chat_info = f"For :violet[{model}] Model, chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-        chat_db_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        chat_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
-        chat_old_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
-        code_old_info = f":violet[{model}] memory is limited to {character_limit_w} only. Once it reaches the {character_limit_w}, the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        chat_old_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
+        code_old_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         
         prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
         prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
         prompt_user_chat_ = "What do you want to talk about?"
 
-        #------------------ Guest limit --------------------------#
-        if GUEST == True and total_count >= LIMIT:
-            st.info("Guest daily limit has reached.")
-            
-            # If the limit has reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" not included.
-            guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mmm", "chats_mmm_db", "chats"]
+    #------------------ Guest limit --------------------------#
+    if GUEST == True and total_count >= LIMIT:
+        with st.sidebar:
+            st.info("Guest daily limit has been reached.")
+
+            # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" are not included.
+            guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
             for DB in guest_DB:
                 cur.execute(f"""
                         DELETE  
@@ -217,6 +218,7 @@ def multimodal(con, cur):
                         """)
             con.commit()
             # st.info(prompt_prune_info)
+        st.info("Guest daily limit has been reached.")
 
     #-------------------Conversation starts here---------------------#
     #-------------------Multimodal---------------------#
@@ -515,16 +517,18 @@ def multimodal(con, cur):
         with st.sidebar:
             if prompt_user == "":
                 prompt_user = "What is the image? Tell me more about the image."  
-            uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-            if uploaded_file is not None:
-                image_data = uploaded_file.read()
-                image_name = uploaded_file.name
-                st.image(image_data, image_name)
-                image_data_base = base64.b64encode(image_data)
-                image_data_base_string = base64.b64encode(image_data).decode("utf-8")
-                # image_data_base_string_data = base64.b64decode(image_data_base_string)
-                # st.image(image_data_base_string_data)
-                image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")            
+            image = st.checkbox("Add a photo")
+            if image:
+                uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
+                if uploaded_file is not None:
+                    image_data = uploaded_file.read()
+                    image_name = uploaded_file.name
+                    st.image(image_data, image_name)
+                    image_data_base = base64.b64encode(image_data)
+                    image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                    # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                    # st.image(image_data_base_string_data)
+                    image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")            
             button = st.button("Send")
             if button:
                 if uploaded_file is None:
@@ -1020,14 +1024,14 @@ def multimodal(con, cur):
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)
-                    for id, name, prompt, output, model, time, start_time, end_time, total_characters, total_output_characters in cur.fetchall():
-                        prompt_history =  f"""
-                                             \n ------------
-                                             \n {name}: {prompt} 
-                                             \n Model Output: {output}
-                                             \n ------------
-                                             \n
-                                             """
+                    for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                        prompt_history = f"""
+                                         \n ------------
+                                         \n {name}: {prompt} 
+                                         \n Model Output: {output}
+                                         \n ------------
+                                         \n
+                                         """
                     try:
                         response = code_chat.send_message(prompt_history, **code_parameters)
                         response = code_chat.send_message(prompt_user, **code_parameters)
@@ -1274,7 +1278,7 @@ if __name__ == '__main__':
                     > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
                     > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
                     
-                    > :gray[This is for demonstration purposes only to showcase the latest multimodal model capabilities.]
+                    > :gray[For demonstration purposes only to showcase the latest multimodal model capabilities.]
                     ---
                     """)
 
