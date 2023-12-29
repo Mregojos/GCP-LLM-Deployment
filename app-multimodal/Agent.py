@@ -1088,7 +1088,7 @@ def multimodal(con, cur):
 
 
     #------------------For Multimodal Guest Limits-----------------------#
-    if (guest_limit == True and button) or (guest_limit == True and prompt_user_chat != None):
+    if (guest_limit == True and button) or (guest_limit == True and prompt_user_chat):
         ### Insert into a database
         SQL = "INSERT INTO multimodal_guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
         data = (input_name, prompt_user, output, model, current_time, count_prompt)
@@ -1100,17 +1100,22 @@ def multimodal(con, cur):
         with st.sidebar:
             prompt_history = st.checkbox("Prompt History")
             if prompt_history:
-                prune_all_prompt_history = st.button(":red[Prune Prompt History and Guest Limit]")
-                if prune_all_prompt_history:
-                    # Guest Limit
+                
+                # Guest Limit
+                prune_multimodal_guest_chats = st.button(":red[Prune Guest Limit]")
+                if prune_multimodal_guest_chats:
                     cur.execute(f"""
                                 DELETE  
                                 FROM multimodal_guest_chats
                                 WHERE name='Guest'
                                 """)
                     con.commit()
-                    # All Guest DB
-                    guest_DB = ["chats", "chats_mmm", "vision_db", "multimodal", "multimodal_DB", "multimodal_guest_chats", "total_prompts"]
+                    st.info(f"Guest Limit was successfully deleted.")
+                
+                # All Guest DB
+                prune_guest_db = st.button(":red[Prune Guest DB]")
+                if prune_guest_db:
+                    guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
                     for DB in guest_DB:
                         cur.execute(f"""
                                 DELETE  
@@ -1118,8 +1123,12 @@ def multimodal(con, cur):
                                 WHERE name='Guest'
                                 """)
                     con.commit()
-                    # All Admin DB
-                    admin_DB = ["chats", "chats_mmm", "vision_db", "multimodal", "multimodal_DB", "total_prompts"]
+                    st.info(f"Guest DB was successfully deleted.")
+                    
+                # All Admin DB
+                prune_admin_db = st.button(":red[Prune Admin DB]")
+                if prune_admin_db:
+                    admin_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
                     for DB in admin_DB:
                         cur.execute(f"""
                                 DELETE  
@@ -1127,10 +1136,31 @@ def multimodal(con, cur):
                                 WHERE name='{input_name}'
                                 """)
                     con.commit()
-                    st.info(f"Prompt history by Admin and Guest was successfully deleted.")
+                    st.info(f"Admin DB was successfully deleted.")
+                    
+                # Prune Total Prompts
+                prune_total_prompts = st.button(":red[Prune Total Prompts DB]")
+                if prune_total_prompts:
+                    cur.execute(f"""
+                            DELETE  
+                            FROM total_prompts
+                            """)
+                    con.commit()
+                    st.info(f"Total Prompts DB was successfully deleted.")
+                    
+                # Prune Chat View Counter
+                prune_chat_view_counter = st.button(":red[Prune Chat View Counter DB]")
+                if prune_chat_view_counter:
+                    cur.execute(f"""
+                            DELETE  
+                            FROM chat_view_counter
+                            """)
+                    con.commit()
+                    st.info(f"Chat View Counter DB was successfully deleted.")
+                
                 
     #---------------- Insert into a table (total_prompts) ----------------#
-    if button or prompt_user_chat != None:
+    if button or prompt_user_chat:
         SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
         data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
         cur.execute(SQL, data)
