@@ -208,7 +208,7 @@ def multimodal(con, cur):
         with st.sidebar:
             st.info("Guest daily limit has been reached.")
 
-            # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" are not included.
+            # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" is not included.
             guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
             for DB in guest_DB:
                 cur.execute(f"""
