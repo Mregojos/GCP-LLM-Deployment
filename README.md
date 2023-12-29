@@ -49,7 +49,7 @@ make cleanup
 ---
 ## Screenshot
 
-![Screenshot](picture/screenshot.png)
+![Screenshot](picture/Screenshot.png)
 
 
 ---
