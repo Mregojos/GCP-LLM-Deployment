@@ -1,7 +1,7 @@
 # Environment
 # TO DO: In production, change the values to be more secure. 
-export VERSION="i"
-export APP_NAME="mm-llm-i"
+export VERSION="iv"
+export APP_NAME="multimodal-iv"
 export DB_PASSWORD="password"
 
 export DB_CONTAINER_NAME="$APP_NAME-sql"
