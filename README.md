@@ -49,10 +49,10 @@ make cleanup
 ---
 ## Screenshot
 
-![Screenshot](picture/Screenshot.png)
+![Screenshot](image/Screenshot.png)
 
 
 ---
 ## Resources
 * Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
-* Model Deployment Repository: https://github.com/mregojos/model-deployment
+* Site Model Deployment Repository: https://github.com/mregojos/model-deployment
