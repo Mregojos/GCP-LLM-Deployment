@@ -914,7 +914,7 @@ def multimodal(con, cur):
             message.markdown(output_history)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
             
-    #-------------------Comparison: Chat Only (Latest vs Old Version)---------------------------------------#
+    #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
     if model == "Chat Text Only (Latest vs Old Version)":
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
@@ -1015,6 +1015,7 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+            model = "Latest Version"
         
         with col_B:
             #-------------------Chat Only Old Version---------------------#
@@ -1032,10 +1033,12 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output_history)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
+            model = "Old Version"
 
     #-------------------Old Version---------------------------------#
     #-------------------Chat Only (Old Version)---------------------#
     if model == "Chat Text Only (Old Version)":
+        current_model = "Chat Text Only (Old Version)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar: 
@@ -1046,10 +1049,8 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                    current_model = "Chat Text Only (Old Version)"
                 else:
                     current_start_time = t.time()
-                    current_model = "Chat Text Only (Old Version)"
                     cur.execute(f"""
                             SELECT * 
                             FROM chats
@@ -1104,6 +1105,7 @@ def multimodal(con, cur):
                 
     #-------------------Code (Old Version)---------------------#
     if model == "Code (Old Version)":
+        current_model = "Code (Old Version)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input("What do you want to talk about?")
         with st.sidebar: 
@@ -1114,10 +1116,8 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                    current_model = "Code (Old Version)"
                 else:
                     current_start_time = t.time()
-                    current_model = "Code (Old Version)"
                     cur.execute(f"""
                             SELECT * 
                             FROM chats
@@ -1186,8 +1186,9 @@ def multimodal(con, cur):
             message = st.chat_message("assistant")
             message.markdown(output_history)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
-
-
+            
+        model = "Chat Text Only (Old Version)"
+        
     #------------------For Multimodal Guest Limits-----------------------#
     if (guest_limit == True and button) or (guest_limit == True and prompt_user_chat):
         ### Insert into a database
@@ -1235,14 +1236,12 @@ def multimodal(con, cur):
                     con.commit()
                     st.rerun()
                 
-                
     #---------------- Insert into a table (total_prompts) ----------------#
     if button or prompt_user_chat:
         SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
         data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
-    
     
 #----------Execution----------#
 if __name__ == '__main__':
