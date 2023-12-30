@@ -14,6 +14,7 @@ export DB_PASSWORD="password"
 export ADMIN_PASSWORD="password"
 export SPECIAL_NAME="guest"
 export FIREWALL_RULES_NAME="$APP_NAME-ports"
+export DB_PORT=5000
 
 # Create a Database
 # Database Environment
