@@ -136,7 +136,7 @@ def multimodal(con, cur):
     character_limit_w = "ten thousand characters"
     output = ""
     current_model = ""
-    prompt_character_limit = 3000 # Only Applicable to Guest
+    prompt_character_limit = 5000 # Only Applicable to Guest
     prompt_character_limit_text = f""":red[CHARACTER LIMIT]: Exceeds the prompt character limit of :blue[{prompt_character_limit}]""" 
     
     #------------------ Admin --------------------------#
