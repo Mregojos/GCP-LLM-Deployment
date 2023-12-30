@@ -12,6 +12,7 @@ export APP_NAME="multimodal-$VERSION"
 export DB_PASSWORD="password"
 export ADMIN_PASSWORD="password"
 export SPECIAL_NAME="guest"
+export FIREWALL_RULES_NAME="$APP_NAME-ports"
 
 # Create a Database
 # Database Environment
