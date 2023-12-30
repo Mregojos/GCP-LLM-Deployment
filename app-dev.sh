@@ -1,4 +1,5 @@
 # For App Development with its own database
+# sh app-dev.sh
 
 # Directory
 cd app-dev-multimodal
@@ -19,8 +20,15 @@ export FIREWALL_RULES_NAME="$APP_NAME-ports"
 export DB_CONTAINER_NAME="$APP_NAME-sql"
 # export DB_NAME="$APP_NAME-admin"
 export DB_USER="$APP_NAME-admin"
-# Remove all running docker 
+# Remove all running docker
 docker rm -f $(docker ps -aq)
+# Remove the db data (only for development)
+sudo rm -rf data
+
+# Build
+echo "Build the app..."
+docker build -t $APP_NAME .
+
 # Run Database Container
 docker run -d \
     --name $DB_CONTAINER_NAME \
@@ -37,7 +45,7 @@ docker run -p 8000:80 \
 # Environment Variables for the app
 DB_HOST=$(gcloud compute instances list --filter="name=$APP_DEV_DB_INSTANCE_NAME" --format="value(networkInterfaces[0].accessConfigs[0].natIP)") 
 echo """DB_NAME=$DB_USER
-DB_USER=$DB_USER 
+DB_USER=$DB_USER
 DB_HOST=$DB_HOST
 DB_PORT=$DB_PORT
 DB_PASSWORD=$DB_PASSWORD
@@ -51,9 +59,6 @@ SPECIAL_NAME=$SPECIAL_NAME
 
 # Remove docker container
 # docker rm -f $APP_NAME
-
-# Build
-docker build -t $APP_NAME .
 
 # Run
 docker run -d -p 9000:9000 -v $(pwd):/app --env-file .env.sh --name $APP_NAME $APP_NAME
@@ -73,7 +78,7 @@ fi
 # docker rm -f $(docker ps -aq)
 
 # Remove the db data
-# sudo rm -f data
+# sudo rm -rf data
 
 # Docker exec
 # docker exec -it $APP_NAME sh
