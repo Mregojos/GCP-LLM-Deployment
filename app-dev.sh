@@ -1,12 +1,40 @@
-# App Development with its own database
+# For App Development with its own database
 
 # Directory
 cd app-dev-multimodal
 
+# App Dev Environment
+export APP_DEV_DB_INSTANCE_NAME="matt"
+
+# App Environments
+export VERSION="i"
+export APP_NAME="multimodal-$VERSION"
+export DB_PASSWORD="password"
+export ADMIN_PASSWORD="password"
+export SPECIAL_NAME="guest"
+
 # Create a Database
+# Database Environment
+export DB_CONTAINER_NAME="$APP_NAME-sql"
+# export DB_NAME="$APP_NAME-admin"
+export DB_USER="$APP_NAME-admin"
+# Remove all running docker 
+docker rm -f $(docker ps -aq)
+# Run Database Container
+docker run -d \
+    --name $DB_CONTAINER_NAME \
+    -e POSTGRES_USER=$DB_USER \
+    -e POSTGRES_PASSWORD=$DB_PASSWORD \
+    -v $(pwd)/data/:/var/lib/postgresql/data/ \
+    -p 5000:5432 \
+    postgres
+docker run -p 8000:80 \
+    -e 'PGADMIN_DEFAULT_EMAIL=user@example.com' \
+    -e 'PGADMIN_DEFAULT_PASSWORD=password' \
+    -d dpage/pgadmin4
 
 # Environment Variables for the app
-DB_HOST=$(gcloud compute instances list --filter="name=$DB_INSTANCE_NAME" --format="value(networkInterfaces[0].accessConfigs[0].natIP)") 
+DB_HOST=$(gcloud compute instances list --filter="name=$APP_DEV_DB_INSTANCE_NAME" --format="value(networkInterfaces[0].accessConfigs[0].natIP)") 
 echo """DB_NAME=$DB_USER
 DB_USER=$DB_USER 
 DB_HOST=$DB_HOST
@@ -34,7 +62,7 @@ if gcloud compute firewall-rules list --filter="name=$FIREWALL_RULES_NAME-dev" -
     echo "Already created"
 else
     gcloud compute --project=$(gcloud config get project) firewall-rules create $FIREWALL_RULES_NAME-dev \
-        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000 --source-ranges=0.0.0.0/0 
+        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000,tcp:5000,tcp:8000 --source-ranges=0.0.0.0/0 
 fi
 
 # Remove docker container
