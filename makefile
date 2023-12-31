@@ -7,11 +7,14 @@ target: print
 print:
 	echo "Makefile's working."
 
-infra_setup:
+# Deployment
+
+run_infra:
+	# source env*
 	sh infra*sh
 	sh app-dev*sh
 
-cleanup:
+run_cleanup:
 	sh cleanup*sh
 
 run_test:
@@ -20,14 +23,20 @@ run_test:
 
 # For Development
 
-dev_setup:
+run_dev:
 	sh app-dev.sh
 
-dev_cleanup:
+run_dev_cleanup:
 	sh app-dev-cleanup.sh
 
 
+# For Development (API)
 
+run_dev_api:
+	# source app-dev-api-env.sh
+	app-dev-api.sh
 
-
+run_dev_api_cleanup:
+	# source app-dev-api-env.sh
+	app-dev-api-cleanup.sh
 
