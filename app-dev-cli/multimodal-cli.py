@@ -3,26 +3,20 @@ import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Part
 import time as t
 
-parser = argparse.ArgumentParser()
+#------------- For flags --------------------#
+# parser = argparse.ArgumentParser()
 # parser.add_argument("--prompt", help="Prompt")
-parser.add_argument("--range", help="Range")
+# parser.add_argument("--range", help="Range")
 
-args = parser.parse_args()
+# args = parser.parse_args()
 
 # print(args.prompt)
 # print(args.range)
 
-# Chat Model
+#-------------- Chat Model -------------------#
 mm_model = GenerativeModel("gemini-pro")
 mm_chat = mm_model.start_chat()
 
-
-def start_chat(prompt):
-    start = t.time()
-    response = mm_chat.send_message(prompt)
-    print(response.text)
-    end = t.time()
-    # print(f"Total Processing Time: {end - start}")
 
 def start_chat_stream(prompt):
     start = t.time()
@@ -34,15 +28,35 @@ def start_chat_stream(prompt):
     print(response_)
     end = t.time()
     # print(f"Total Processing Time: {end - start}")
+    
+def start_chat(prompt):
+    start = t.time()
+    response = mm_chat.send_message(prompt)
+    print(response.text)
+    end = t.time()
+    # print(f"Total Processing Time: {end - start}")
 
-for _ in range (int(args.range)):
+print("\n")
+print("-----------Chat Starts here-------------")
+stream = input("Stream Output? (Yes/Y or No/N):  ")
+stop = "No"
+while stop == "No" or stop =="N":
     # prompt = args.prompt
-    prompt = input("Prompt:  ")
-    stream = input("Stream (T or F):  ")
-    if stream == "T":
+    print("\n \n")
+    prompt = input("Prompt:  ")   
+    
+    print("\n \n")
+    if stream == "Yes" or stream == "Y":
         start_chat_stream(prompt)
-    elif stream == "F":
+    elif stream == "No" or stream == "N":
         start_chat(prompt)
-
+    
+    print("\n \n")
     # Chat History
-    print(mm_chat.history)
+    # print(mm_chat.history)
+    # print("\n \n")
+    
+    stop = input("End the conversation? (Yes/Y or No/N):  ")
+    print("\n \n")
+    
+    print("------------------------")
