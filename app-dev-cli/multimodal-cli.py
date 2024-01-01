@@ -42,51 +42,61 @@ def start_chat(prompt):
 
 print("\n")
 print("-----------Configuration Setup-------------")
-stream = input("Stream Output? (Yes/Y or No/N/Enter):  ")
-if stream == "":
-    stream = "No"
-output = input("Save Output? (Yes/Y/Enter or No/N):  ")
-if output == "":
-    output = "Yes"
-if output == "Yes" or output == "Y":
-    print("\n")
-    print("Conversation(s) will be saved as output.md")
-output_copy = ""
-    
-print("\n")
-print("-----------Chat Starts here-------------")
-stop = "No"
-while stop == "No" or stop =="N":
-    # prompt = args.prompt
-    print("\n \n")
-    prompt = input("Prompt:  ")   
-    
-    print("\n \n")
-    print("Output: \n")
-    if stream == "Yes" or stream == "Y":
-        response = start_chat_stream(prompt)
-    elif stream == "No" or stream == "N":
-        response = start_chat(prompt)
-    
-    print("\n \n")
-    # Chat History
-    # print(mm_chat.history)
-    # print("\n \n")
-    
-    output_copy = output_copy + f"\n\n **Prompt**: {prompt} \n\n **Output**: \n\n {response.text} \n \n\n --------------------- \n\n\n"
-    
-    # Save output
+choose = input("Choose: Conversation/Chat or Code?  ")
+
+if choose == "Conversation" or choose == "Chat":
+    stream = input("Stream Output? (Yes/Y or No/N/Enter):  ")
+    if stream == "":
+        stream = "No"
+    output = input("Save Output? (Yes/Y/Enter or No/N):  ")
+    if output == "":
+        output = "Yes"
     if output == "Yes" or output == "Y":
-        with open("output.md", "w") as file:
-            file.write(output_copy)
+        print("\n")
+        print("Conversation(s) will be saved as output.md")
+    output_copy = ""
+
+    print("\n")
+    print("-----------Chat Starts here-------------")
+    stop = "No"
+    while stop == "No" or stop =="N":
+        # prompt = args.prompt
+        print("\n \n")
+        prompt = input("Prompt:  ")   
+
+        print("\n \n")
+        print("Output: \n")
+        if stream == "Yes" or stream == "Y":
+            response = start_chat_stream(prompt)
+        elif stream == "No" or stream == "N":
+            response = start_chat(prompt)
+
+        print("\n \n")
+        # Chat History
+        # print(mm_chat.history)
+        # print("\n \n")
+
+        output_copy = output_copy + f"\n\n **Prompt**: {prompt} \n\n **Output**: \n\n {response.text} \n \n\n --------------------- \n\n\n"
+
+        # Save output
+        if output == "Yes" or output == "Y":
+            with open("output.md", "w") as file:
+                file.write(output_copy)
+
+        # End the conversation
+        stop = input("End the conversation? (Yes/Y or No/N/Enter):  ")
+        print("\n \n")
+        if stop == "":
+            stop = "No"
+
+        print("------------------------")
+        if stop == "Yes" or stop ==  "Y":
+            print("Chat Logout")
+            
+if choose == "Code":
+    file_name = input("File Location or Name? ")
+    # Open File
+    with open(file_name, "r") as file:
+        file.read()
     
-    # End the conversation
-    stop = input("End the conversation? (Yes/Y or No/N/Enter):  ")
-    print("\n \n")
-    if stop == "":
-        stop = "No"
-       
-    print("------------------------")
-    if stop == "Yes" or stop ==  "Y":
-        print("Chat Logout")
         
