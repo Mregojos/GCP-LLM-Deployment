@@ -1,3 +1,6 @@
+# sh multimodal-cli.sh
+# py multimodal-cli.py
+
 import argparse
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Part
