@@ -30,6 +30,7 @@ def start_chat_stream(prompt):
     print(response_)
     end = t.time()
     # print(f"Total Processing Time: {end - start}")
+    return response
     
 def start_chat(prompt):
     start = t.time()
@@ -37,6 +38,7 @@ def start_chat(prompt):
     print(response.text)
     end = t.time()
     # print(f"Total Processing Time: {end - start}")
+    return response
 
 print("\n")
 print("-----------Configuration Setup-------------")
@@ -61,20 +63,33 @@ while stop == "No" or stop =="N":
     print("\n \n")
     print("Output: \n")
     if stream == "Yes" or stream == "Y":
-        start_chat_stream(prompt)
+        response = start_chat_stream(prompt)
     elif stream == "No" or stream == "N":
-        start_chat(prompt)
+        response = start_chat(prompt)
     
     print("\n \n")
     # Chat History
     # print(mm_chat.history)
     # print("\n \n")
     
+    # Save output
+    if output == "Yes" or output == "Y":
+        with open("output.md", "w") as file:
+            file.write(f"""**Prompt**: {prompt}
+                        \n **Output**:
+                        \n {response.text}
+                        \n
+                        \n ---------------------
+                        \n
+                        """)
+    
+    # End the conversation
     stop = input("End the conversation? (Yes/Y or No/N/Enter):  ")
     print("\n \n")
     if stop == "":
         stop = "No"
-    
+       
     print("------------------------")
     if stop == "Yes" or stop ==  "Y":
         print("Chat Logout")
+        
