@@ -1,4 +1,8 @@
 # For App Development version ii with its own database
+# gcloud services list --available
+gcloud services enable compute.googleapis.com iam.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com aiplatform.googleapis.com cloudresourcemanager.googleapis.com
+echo "\n #----------Services have been successfully enabled.----------# \n"
+
 # sh app-dev-ii.sh
 
 # Directory

@@ -54,7 +54,7 @@ def connection():
 def models():
     # Chat Capable Model
     mm_model = GenerativeModel("gemini-pro")
-    mm_chat = mm_model.start_chat()
+    mm_chat = mm_model.start_chat(history=[])
     # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
     
     return mm_chat
@@ -75,3 +75,23 @@ if __name__ == '__main__':
         con, cur = connection()
         mm_chat = models()
         
+        info_sample_prompts = """
+            You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+            * What is Cloud Computing?
+            * What is Google Cloud?
+            * Important Google Cloud Services to know
+            * Compare Site Reliability Engineering with DevOps
+            * Tell me about different cloud services
+            * Explain Cloud Computing in simple terms
+            * Tell me a funny quote related to Cloud Computing
+            """
+        st.info(info_sample_prompts)
+        
+        prompt = st.text_area("Prompt ")
+        button = st.button("Generate")
+
+        if prompt and button:
+            response = mm_chat.send_message(prompt)
+            st.write(response.text)
+            st.markdown(response.text)
+            st.write(response.history)
