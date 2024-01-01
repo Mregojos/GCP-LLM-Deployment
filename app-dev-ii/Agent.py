@@ -54,7 +54,7 @@ def connection():
 def models():
     # Chat Capable Model
     mm_model = GenerativeModel("gemini-pro")
-    mm_chat = mm_model.start_chat(history=[])
+    mm_chat = mm_model.start_chat()
     # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
     
     return mm_chat
@@ -87,11 +87,25 @@ if __name__ == '__main__':
             """
         st.info(info_sample_prompts)
         
-        prompt = st.text_area("Prompt ")
+        prompt = st.text_area("Prompt")
         button = st.button("Generate")
-
+        button_stream = st.button("Generate (Stream)")
+        refresh = st.button("Refresh")
+        
+        start = t.time()
         if prompt and button:
             response = mm_chat.send_message(prompt)
             st.write(response.text)
             st.markdown(response.text)
-            st.write(response.history)
+            st.text(mm_chat.history)
+            end = t.time()
+            st.caption(end - start)
+        if prompt and button_stream:
+            response = mm_chat.send_message(prompt, stream=True)
+            for chunk in response:
+                st.write(chunk.text)
+            st.text(mm_chat.history)
+            end = t.time()
+            st.caption(end - start)
+        if refresh:
+            st.rerun()
