@@ -39,8 +39,19 @@ def start_chat(prompt):
     # print(f"Total Processing Time: {end - start}")
 
 print("\n")
+print("-----------Configuration Setup-------------")
+stream = input("Stream Output? (Yes/Y or No/N/Enter):  ")
+if stream == "":
+    stream = "No"
+output = input("Save Output? (Yes/Y or No/N/Enter):  ")
+if output == "":
+    output = "No"
+if output == "Yes" or output == "Y":
+    print("\n")
+    print("Conversation will be saved as output.md")
+    
+print("\n")
 print("-----------Chat Starts here-------------")
-stream = input("Stream Output? (Yes/Y or No/N):  ")
 stop = "No"
 while stop == "No" or stop =="N":
     # prompt = args.prompt
@@ -48,6 +59,7 @@ while stop == "No" or stop =="N":
     prompt = input("Prompt:  ")   
     
     print("\n \n")
+    print("Output: \n")
     if stream == "Yes" or stream == "Y":
         start_chat_stream(prompt)
     elif stream == "No" or stream == "N":
@@ -58,7 +70,11 @@ while stop == "No" or stop =="N":
     # print(mm_chat.history)
     # print("\n \n")
     
-    stop = input("End the conversation? (Yes/Y or No/N):  ")
+    stop = input("End the conversation? (Yes/Y or No/N/Enter):  ")
     print("\n \n")
+    if stop == "":
+        stop = "No"
     
     print("------------------------")
+    if stop == "Yes" or stop ==  "Y":
+        print("Chat Logout")
