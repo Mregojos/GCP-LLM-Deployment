@@ -64,6 +64,8 @@ def models():
 if __name__ == '__main__':
     # Connection
     con = False
+    mm_chat = models()
+
     try:
         con, cur = connection()
         con = True
@@ -73,7 +75,6 @@ if __name__ == '__main__':
         st.info("Database Connected")
         # Connection
         con, cur = connection()
-        mm_chat = models()
         
         info_sample_prompts = """
             You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
@@ -99,13 +100,17 @@ if __name__ == '__main__':
             st.markdown(response.text)
             st.text(mm_chat.history)
             end = t.time()
-            st.caption(end - start)
+            st.caption(f"Total Processing Time: {end - start}")
         if prompt and button_stream:
+            response_ = ""
             response = mm_chat.send_message(prompt, stream=True)
+            st.info("Output streaming... \n")
             for chunk in response:
                 st.write(chunk.text)
-            st.text(mm_chat.history)
+                response_ = response_ + chunk.text 
+            st.info("Output in markdown \n")
+            st.markdown(response_)
             end = t.time()
-            st.caption(end - start)
+            st.caption(f"Total Processing Time: {end - start}")
         if refresh:
             st.rerun()
