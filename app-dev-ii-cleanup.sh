@@ -1,5 +1,5 @@
 # Directory
-cd app-dev-multimodal
+cd app-dev-ii
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"
