@@ -1,4 +1,3 @@
-# sh multimodal-cli.sh
 # py multimodal-cli.py
 
 import argparse
