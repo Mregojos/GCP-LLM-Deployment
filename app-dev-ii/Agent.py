@@ -57,14 +57,14 @@ def models():
     mm_chat = mm_model.start_chat()
     # print(mm_chat.send_message("""Hi. I'm Matt.""", generation_config=mm_config))
     
-    return mm_chat
+    return mm_model, mm_chat
 
 
 #----------Execution----------#
 if __name__ == '__main__':
     # Connection
     con = False
-    mm_chat = models()
+    mm_model, mm_chat = models()
 
     try:
         con, cur = connection()
@@ -91,14 +91,15 @@ if __name__ == '__main__':
         prompt = st.text_area("Prompt")
         button = st.button("Generate")
         button_stream = st.button("Generate (Stream)")
+        # button_multi_turn = st.button("Generate (Multi-Turn)")
         refresh = st.button("Refresh")
         
         start = t.time()
         if prompt and button:
             response = mm_chat.send_message(prompt)
-            st.write(response.text)
+            # st.write(response.text)
             st.markdown(response.text)
-            st.text(mm_chat.history)
+            # st.text(mm_chat.history)
             end = t.time()
             st.caption(f"Total Processing Time: {end - start}")
         if prompt and button_stream:
@@ -112,5 +113,11 @@ if __name__ == '__main__':
             st.markdown(response_)
             end = t.time()
             st.caption(f"Total Processing Time: {end - start}")
+        # if prompt and button_multi_turn:            
+        #    pass
+            # st.caption(f"Total Processing Time: {end - start}")
         if refresh:
             st.rerun()
+            
+        # for message in mm_chat.history:
+        #    st.markdown(f'**{message.role}**: {message.parts[0].text}')
