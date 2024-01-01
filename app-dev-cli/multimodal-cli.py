@@ -80,7 +80,6 @@ while stop == "No" or stop =="N":
                         \n {response.text}
                         \n
                         \n ---------------------
-                        \n
                         """)
     
     # End the conversation
