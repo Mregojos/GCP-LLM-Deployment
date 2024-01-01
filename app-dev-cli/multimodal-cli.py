@@ -51,6 +51,7 @@ if output == "":
 if output == "Yes" or output == "Y":
     print("\n")
     print("Conversation will be saved as output.md")
+output_copy = ""
     
 print("\n")
 print("-----------Chat Starts here-------------")
@@ -72,16 +73,12 @@ while stop == "No" or stop =="N":
     # print(mm_chat.history)
     # print("\n \n")
     
+    output_copy = output_copy + f"\n\n **Prompt**: {prompt} \n\n **Output**: \n\n {response.text} \n \n\n --------------------- \n\n\n"
+    
     # Save output
     if output == "Yes" or output == "Y":
         with open("output.md", "w") as file:
-            file.write(f"""**Prompt**: {prompt}
-                        \n **Output**:
-                        \n {response.text}
-                        \n
-                        \n ---------------------
-                        \n
-                        """)
+            file.write(output_copy)
     
     # End the conversation
     stop = input("End the conversation? (Yes/Y or No/N/Enter):  ")
