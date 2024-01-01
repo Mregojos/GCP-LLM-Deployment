@@ -45,12 +45,12 @@ print("-----------Configuration Setup-------------")
 stream = input("Stream Output? (Yes/Y or No/N/Enter):  ")
 if stream == "":
     stream = "No"
-output = input("Save Output? (Yes/Y or No/N/Enter):  ")
+output = input("Save Output? (Yes/Y/Enter or No/N):  ")
 if output == "":
-    output = "No"
+    output = "Yes"
 if output == "Yes" or output == "Y":
     print("\n")
-    print("Conversation will be saved as output.md")
+    print("Conversation(s) will be saved as output.md")
 output_copy = ""
     
 print("\n")
