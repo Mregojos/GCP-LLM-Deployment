@@ -37,3 +37,11 @@ run_dev_ii:
 
 run_dev_ii_cleanup:
 	sh app-dev-ii-cleanup.sh
+
+# For CLI Development
+
+run_dev_cli:
+	sh app-dev-cli.sh
+
+run_dev_cli_cleanup:
+	sh app-dev-cli-cleanup.sh
