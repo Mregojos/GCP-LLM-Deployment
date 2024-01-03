@@ -1,8 +1,12 @@
-# For App Development with its own database
-# sh app-dev.sh
+# For App Development version ii with its own database
+# gcloud services list --available
+gcloud services enable compute.googleapis.com iam.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com aiplatform.googleapis.com cloudresourcemanager.googleapis.com
+echo "\n #----------Services have been successfully enabled.----------# \n"
+
+# sh app-dev-ii.sh
 
 # Directory
-cd app-dev-multimodal
+cd app-dev-ii
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"

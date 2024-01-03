@@ -1,29 +1,58 @@
-# GCP Multi-Modal Large Language Model Deployment
+# Multimodal Model Deployment
 
 ---
-
-## Objective 
-* To deploy Multi-Modal Large Language Model on GCP
+## Objective
+* To test the new multimodal model capabilities
+* To deploy the new multimodal model using GCP services
 
 ---
-### Prerequisite
-* GCP Account
-* GCP Project Owner Role
+## Prerequisite
+* Google Cloud Account
+* Google Cloud Owner Role
 
+---
+## Setup
 ```sh
-# Export Variables
-source environment-variables.sh
-# Build infrastructure and deploy the app
-sh infrastructure-automation.sh
-# sh app-dev.sh
+# Environment Variables
+source env*
+
+# Infra
+sh infra*
+
+# Dev
+sh app-dev-multimodal.sh
+
+# Test
+make run_test
 
 # Cleanup
-# Export Variables
-source environment-variables.sh
-sh cleanup.sh
+sh cleanup-multimodal.sh
+
+---
+# Using makefile
+# Environment Variables
+source env*
+
+# Infra
+make infra_setup
+
+# Dev
+make dev_setup
+
+# Test
+make run_test
+
+# Cleanup
+make cleanup
 ```
 
 ---
-Resources:
-* Git Repository https://github.com/mregojos/GCP-LLM-Deployment
-* Model Deployment Repository https://github.com/mregojos/model-deployment
+## Screenshot
+
+![Screenshot](image/Screenshot.png)
+
+
+---
+## Resources
+* Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
+* Site Model Deployment Repository: https://github.com/mregojos/model-deployment
