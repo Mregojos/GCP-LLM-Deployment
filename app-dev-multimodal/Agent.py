@@ -148,7 +148,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 2
+    LIMIT = 20
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
