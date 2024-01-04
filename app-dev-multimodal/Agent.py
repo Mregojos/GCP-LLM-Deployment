@@ -121,7 +121,7 @@ def models():
     return mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters
 
 
-#----------- Multimodal, Chat, Multimodal with Database, Vision (One Turn), Vision with DB, Chat with DB --------------#
+#----------- Multimodal, Chat, Multimodal with Database, Vision (One-Turn), Vision with DB, Chat with DB --------------#
 def multimodal(con, cur):    
     #----------------- Variables ------------------------#
     total_prompt = 0
@@ -181,7 +181,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal (Multi-Turn)", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Text Only", "Chat Text Only (Multi-Turn)", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (One-Turn)", "Multimodal", "Multimodal (Multi-Turn)", "Multimodal with DB", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)",  "Chat Text Only", "Chat Text Only (Multi-Turn)", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -221,6 +221,132 @@ def multimodal(con, cur):
         st.info("Guest daily limit has been reached.")
 
     #-------------------Conversation starts here---------------------#
+    #-------------------Multimodal (One-Turn)---------------------#
+    if model == "Multimodal (One-Turn)":
+        current_model = "Multimodal (One-Turn)"
+        st.info(info_sample_prompts)
+        prompt_user_chat = st.chat_input(prompt_user_chat_)
+        current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        input_characters = ""
+        end_time = ""
+        OUTPUT = False
+        with st.sidebar:
+            image = st.checkbox("Add a photo")
+            if image:
+                uploaded_file = st.file_uploader("Upload a photo", type=["png"])
+                if uploaded_file is not None:
+                    image_data = uploaded_file.read()
+                    image_name = uploaded_file.name
+                    st.image(image_data, image_name)
+                    image_data_base = base64.b64encode(image_data)
+                    image_data_base_string = base64.b64encode(image_data).decode("utf-8")
+                    # image_data_base_string_data = base64.b64decode(image_data_base_string)
+                    # st.image(image_data_base_string_data)
+                    image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
+                    responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
+                    current_image_detail = responses.text
+                else:
+                    image_data_base_string = ""
+            
+            
+            button = st.button("Generate")
+            button_streaming = st.button("Generate (Streaming)")
+            current_start_time = t.time() 
+            if button or prompt_user_chat:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                    OUTPUT = True
+                    try:
+                        if uploaded_file is not None:
+                            response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
+                            output = response.text
+                        if uploaded_file is None:
+                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                            output = response.text
+                    except:
+                        output = prompt_error
+                    input_characters = len(prompt_user)
+                    output_characters = len(output)
+                    end_time = t.time() 
+                      
+            response = ""
+            response_ = ""
+            if button_streaming:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                    OUTPUT = True
+                    current_start_time = t.time() 
+                    try:
+                        if uploaded_file is not None:
+                            response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , stream=True, generation_config=mm_config)
+                        if uploaded_file is None:
+                            response = mm_chat.send_message(prompt_user, stream=True, generation_config=mm_config)
+                    except:
+                        output = prompt_error
+
+                input_characters = len(prompt_user)
+                
+            # st.info(multimodal_info)
+            
+            refresh = st.button(":blue[Reset]")
+            if refresh:
+                st.rerun()
+                
+        if (button or prompt_user_chat) and OUTPUT == True:
+            message = st.chat_message("user")
+            message.write(f":blue[{input_name}]") 
+            if uploaded_file is not None:
+                message.image(image_data, image_name)
+                message.text(f"{prompt_user}")
+                message.caption(f"{current_time} | Input Characters: {input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}" ) 
+            elif uploaded_file is None:
+                message.text(f"{prompt_user}")
+                message.caption(f"{current_time} | Input Characters: {input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+
+        elif button_streaming and OUTPUT == True:
+            message = st.chat_message("user")
+            message.write(f":blue[{input_name}]") 
+            if uploaded_file is not None:
+                message.image(image_data, image_name)
+                message.text(f"{prompt_user}")
+                message.caption(f"{current_time} | Input Characters: {input_characters}")
+                message = st.chat_message("assistant")
+                for chunk in response:
+                    message.markdown(chunk.text)
+                    response_ = response_ + chunk.text 
+                output_characters = len(response_)
+                end_time = t.time()
+                message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}" ) 
+            elif uploaded_file is None:
+                message.text(f"{prompt_user}")
+                message.caption(f"{current_time} | Input Characters: {input_characters}")
+                message = st.chat_message("assistant")
+                for chunk in response:
+                    message.markdown(chunk.text)
+                    response_ = response_ + chunk.text 
+                output_characters = len(response_)
+                end_time = t.time() 
+                message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+
+        
+        model = "Multimodal (One-Turn)"
+        
     #-------------------Multimodal---------------------#
     # It stores the prompts only
     if model == "Multimodal":
@@ -565,8 +691,8 @@ def multimodal(con, cur):
         model = "Multimodal with DB"
 
     #-------------------Vision---------------------#
-    if model == "Vision (One Turn)":
-        current_model = "Vision (One Turn)"
+    if model == "Vision (One-Turn)":
+        current_model = "Vision (One-Turn)"
         st.info(vision_info_)
         with st.sidebar:
             if prompt_user == "":
@@ -608,9 +734,9 @@ def multimodal(con, cur):
             message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
 
     #-------------------Vision with DB--------------------#
-    if model == "Vision (One Turn) with DB":
-        current_model = "Vision (One Turn) with DB"
-        # Vision (One Turn) with Database only; No memory of the past conversations.
+    if model == "Vision (One-Turn) with DB":
+        current_model = "Vision (One-Turn) with DB"
+        # Vision (One-Turn) with Database only; No memory of the past conversations.
         st.info(vision_info_)
         with st.sidebar:
             if prompt_user == "":
@@ -689,6 +815,87 @@ def multimodal(con, cur):
                 message.image(image_data_base_string_data)
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
+            
+    #------------------- Text Only (One-Turn)---------------------#
+    if model == "Text Only (One-Turn)":
+        current_model = "Text Only (One-Turn)"
+        st.info(info_sample_prompts)
+        prompt_user_chat = st.chat_input(prompt_user_chat_)
+        current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        input_characters = ""
+        end_time = ""
+        OUTPUT = False
+        with st.sidebar:
+            button = st.button("Generate")
+            button_streaming = st.button("Generate (Streaming)")
+            current_start_time = t.time() 
+            if button or prompt_user_chat:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                    OUTPUT = True
+                    try:
+                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
+                        output = response.text
+                    except:
+                        output = prompt_error
+                    input_characters = len(prompt_user)
+                    output_characters = len(output)
+                    end_time = t.time() 
+                      
+            response_ = ""
+            if button_streaming:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                    OUTPUT = True
+                    current_start_time = t.time() 
+                    try:
+                        response = mm_chat.send_message(prompt_user, stream=True, generation_config=mm_config)
+                    except:
+                        output = prompt_error
+
+                input_characters = len(prompt_user)
+                
+            # st.info(multimodal_info)
+            
+            refresh = st.button(":blue[Reset]")
+            if refresh:
+                st.rerun()
+                
+        if (button or prompt_user_chat) and OUTPUT == True:
+            message = st.chat_message("user")
+            message.write(f":blue[{input_name}]") 
+            message.text(f"{prompt_user}")
+            message.caption(f"{current_time} | Input Characters: {input_characters}")
+            message = st.chat_message("assistant")
+            message.markdown(output)
+            message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+
+        elif button_streaming and OUTPUT == True:
+            message = st.chat_message("user")
+            message.write(f":blue[{input_name}]") 
+            message.text(f"{prompt_user}")
+            message.caption(f"{current_time} | Input Characters: {input_characters}")
+            message = st.chat_message("assistant")
+            for chunk in response:
+                message.markdown(chunk.text)
+                response_ = response_ + chunk.text 
+            output_characters = len(response_)
+            end_time = t.time() 
+            # message.markdown(output)
+            message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+
+        
+        model = "Text Only (One-Turn)"
 
     #-------------------Chat Text Only---------------------#
     if model == "Chat Text Only":
@@ -1205,7 +1412,7 @@ def multimodal(con, cur):
         model = "Chat Text Only (Old Version)"
         
     #------------------For Multimodal Guest Limits-----------------------#
-    if (guest_limit == True and button) or (guest_limit == True and prompt_user_chat):
+    if (guest_limit == True and button) or (guest_limit == True and prompt_user_chat) or (guest_limit == True and button_streaming):
         ### Insert into a database
         SQL = "INSERT INTO multimodal_guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
         data = (input_name, prompt_user, output, model, current_time, count_prompt)
