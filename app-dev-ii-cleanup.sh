@@ -6,7 +6,7 @@ export APP_DEV_DB_INSTANCE_NAME="matt"
 
 # App Environments
 export VERSION="i"
-export APP_NAME="multimodal-$VERSION"
+export APP_NAME="app-dev-ii-multimodal-$VERSION"
 export DB_PASSWORD="password"
 export ADMIN_PASSWORD="password"
 export SPECIAL_NAME="guest"
@@ -18,7 +18,7 @@ export DB_CONTAINER_NAME="$APP_NAME-sql"
 export DB_USER="$APP_NAME-admin"
 
 # Remove all running docker
-docker rm -f $(docker ps -aq)
+docker rm -f $APP_NAME $DB_CONTAINER_NAME $DB_CONTAINER_NAME-ui
 # Remove the db data (only for development)
 sudo rm -rf data
 
