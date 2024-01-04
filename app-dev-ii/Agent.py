@@ -65,8 +65,10 @@ if __name__ == '__main__':
     # Connection
     con = False
     mm_model, mm_chat = models()
+    input_name = "Admin"
     column_num = 2
-
+    round_number = 2
+    
     try:
         con, cur = connection()
         con = True
@@ -77,7 +79,7 @@ if __name__ == '__main__':
         # Connection
         con, cur = connection()
         
-        apps = st.selectbox("Tools", ["Text Only (One-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
+        apps = st.selectbox("Tools", ["Text Only (One-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)", "Text Only (Multi-Turn)"])
         
         if apps == "Text Only (One-Turn)":
 
@@ -185,7 +187,9 @@ if __name__ == '__main__':
 
             info_sample_prompts = """
                 You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
-                * List down GCP Services
+                * Command line to List down GCP Services
+                * Command line to create a bucket
+                * Command line to create a compute engine
                 """
             st.info(info_sample_prompts)
 
@@ -201,12 +205,12 @@ if __name__ == '__main__':
             with col_B:
                 start = t.time()
                 if prompt and button:
-                    response = mm_chat.send_message(f"Write only the Google Cloud CLI: {prompt}")
+                    response = mm_chat.send_message(f"Write only the Google Cloud Command Line in code format markdown: {prompt}")
                     st.info("Output in markdown \n")
                     st.markdown(response.text)
                     # st.text(mm_chat.history)
                     end = t.time()
-                    st.caption(f"Total Processing Time: {end - start}")
+                    #st.caption(f"Total Processing Time: {end - start}")
                 if prompt and button_stream:
                     response_ = ""
                     response = mm_chat.send_message(prompt, stream=True)
@@ -217,6 +221,89 @@ if __name__ == '__main__':
                     st.info("Output in markdown \n")
                     st.markdown(response_)
                     end = t.time()
-                    st.caption(f"Total Processing Time: {end - start}")
+                    # st.caption(f"Total Processing Time: {end - start}")
                 if refresh:
                     st.rerun()
+
+        if apps == "Text Only (Multi-Turn)":
+            current_model = "Text Only (Multi-Turn)"
+            current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+            prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
+
+            info_sample_prompts = """
+                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+                * What is Cloud Computing?
+                * What is Google Cloud?
+                * Important Google Cloud Services to know
+                * Compare Site Reliability Engineering with DevOps
+                * Tell me about different cloud services
+                * Explain Cloud Computing in simple terms
+                * Tell me a funny quote related to Cloud Computing
+                """
+            st.info(info_sample_prompts)
+
+            col_A, col_B = st.columns(column_num)
+
+            with col_A:
+                prompt_user = st.text_area("Prompt")
+                button = st.button("Generate")
+                refresh = st.button("Refresh")
+                if refresh:
+                    st.rerun()
+                prune = st.button(":red[Prune History]")
+                if prune:
+                    cur.execute("DROP TABLE multimodal")
+                    con.commit()
+                    st.info("Done")
+                    st.rerun()
+
+
+            with col_B:
+                start = t.time()
+                if prompt_user and button:
+                    prompt_history = ""
+                    current_start_time = t.time() 
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM multimodal
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)                    
+                    try:
+                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                            prompt_history = prompt_history + f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+
+                        st.write(prompt_history)
+
+                        if prompt_history == "":
+                            response = mm_model.generate_content(prompt_user)
+                        elif prompt_history != "":
+                            prompt_history = prompt_history + f"\n\n User: {prompt_user}"
+                            response = mm_model.generate_content(prompt_history)
+                        output = response.text
+                    except:
+                        output = prompt_error
+
+                    output_characters = len(output)
+                    characters = len(prompt_user)
+                    end_time = t.time() 
+                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                    cur.execute(SQL, data)
+                    con.commit() 
+                    
+                    
+                cur.execute(f"""
+                SELECT * 
+                FROM multimodal
+                WHERE name='{input_name}'
+                ORDER BY time ASC
+                """)
+                for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                    message = st.chat_message("user")
+                    message.write(f":blue[{name}]") 
+                    message.text(f"{prompt}")
+                    message.caption(f"{time} | Input Characters: {total_input_characters}")
+                    message = st.chat_message("assistant")
+                    message.markdown(output)
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
