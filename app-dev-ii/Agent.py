@@ -77,7 +77,7 @@ if __name__ == '__main__':
         # Connection
         con, cur = connection()
         
-        apps = st.selectbox("Tools", ["Text Only (One-Turn)", "Code Analysis (One-Turn)"])
+        apps = st.selectbox("Tools", ["Text Only (One-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
         
         if apps == "Text Only (One-Turn)":
 
@@ -158,13 +158,50 @@ if __name__ == '__main__':
                             \n Text: {len(prompt_text)}
                             """)
                 refresh = st.button("Refresh")
-                # button_multi_turn = st.button("Generate (Multi-Turn)")
 
             with col_B:
                 start = t.time()
                 if prompt and button:
                     response = mm_chat.send_message(prompt)
-                    # st.write(response.text)
+                    st.info("Output in markdown \n")
+                    st.markdown(response.text)
+                    end = t.time()
+                    st.caption(f"Total Processing Time: {end - start}")
+                if prompt and button_stream:
+                    response_ = ""
+                    response = mm_chat.send_message(prompt, stream=True)
+                    st.info("Output streaming... \n")
+                    for chunk in response:
+                        st.write(chunk.text)
+                        response_ = response_ + chunk.text 
+                    st.info("Output in markdown \n")
+                    st.markdown(response_)
+                    end = t.time()
+                    st.caption(f"Total Processing Time: {end - start}")
+                if refresh:
+                    st.rerun()
+                
+        if apps == "GCP CLI Maker (One-Turn)":
+
+            info_sample_prompts = """
+                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+                * List down GCP Services
+                """
+            st.info(info_sample_prompts)
+
+            col_A, col_B = st.columns(column_num)
+
+            with col_A:
+
+                prompt = st.text_area("Prompt")
+                button = st.button("Generate")
+                button_stream = st.button("Generate (Stream)")
+                refresh = st.button("Refresh")
+
+            with col_B:
+                start = t.time()
+                if prompt and button:
+                    response = mm_chat.send_message(f"Write only the Google Cloud CLI: {prompt}")
                     st.info("Output in markdown \n")
                     st.markdown(response.text)
                     # st.text(mm_chat.history)
@@ -181,11 +218,5 @@ if __name__ == '__main__':
                     st.markdown(response_)
                     end = t.time()
                     st.caption(f"Total Processing Time: {end - start}")
-                # if prompt and button_multi_turn:            
-                #    pass
-                    # st.caption(f"Total Processing Time: {end - start}")
                 if refresh:
                     st.rerun()
-
-                # for message in mm_chat.history:
-                #    st.markdown(f'**{message.role}**: {message.parts[0].text}')
