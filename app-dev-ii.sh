@@ -18,7 +18,7 @@ export DB_PASSWORD="password"
 export ADMIN_PASSWORD="password"
 export SPECIAL_NAME="guest"
 export FIREWALL_RULES_NAME="$APP_NAME-ports"
-export DB_PORT=5000
+export DB_PORT=6000
 
 # Create a Database
 # Database Environment
@@ -34,15 +34,15 @@ sudo rm -rf data
 echo "Build the app..."
 docker build -t $APP_NAME .
 
-# Run Database Container
+# Run Database Container (Port is different in app-dev-ii)
 docker run -d \
     --name $DB_CONTAINER_NAME \
     -e POSTGRES_USER=$DB_USER \
     -e POSTGRES_PASSWORD=$DB_PASSWORD \
     -v $(pwd)/data/:/var/lib/postgresql/data/ \
-    -p 5000:5432 \
+    -p 6000:5432 \
     postgres
-docker run -p 8000:80 \
+docker run -p 8800:80 \
     -e 'PGADMIN_DEFAULT_EMAIL=user@example.com' \
     -e 'PGADMIN_DEFAULT_PASSWORD=password' \
     -d dpage/pgadmin4
@@ -66,14 +66,14 @@ SPECIAL_NAME=$SPECIAL_NAME
 # docker rm -f $APP_NAME
 
 # Run
-docker run -d -p 9000:9000 -v $(pwd):/app --env-file .env.sh --name $APP_NAME $APP_NAME
+docker run -d -p 10000:10000 -v $(pwd):/app --env-file .env.sh --name $APP_NAME $APP_NAME
 
 # Create a firewall (GCP)
 if gcloud compute firewall-rules list --filter="name=$FIREWALL_RULES_NAME-dev" --format="table(name)" | grep -q $FIREWALL_RULES_NAME-dev; then
     echo "Already created"
 else
     gcloud compute --project=$(gcloud config get project) firewall-rules create $FIREWALL_RULES_NAME-dev \
-        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000,tcp:5000,tcp:8000 --source-ranges=0.0.0.0/0 
+        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000,tcp:5000,tcp:8000,tcp:10000,tcp:8800,tcp:6000 --source-ranges=0.0.0.0/0 
 fi
 
 # Remove docker container

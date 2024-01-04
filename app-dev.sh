@@ -69,7 +69,7 @@ if gcloud compute firewall-rules list --filter="name=$FIREWALL_RULES_NAME-dev" -
     echo "Already created"
 else
     gcloud compute --project=$(gcloud config get project) firewall-rules create $FIREWALL_RULES_NAME-dev \
-        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000,tcp:5000,tcp:8000 --source-ranges=0.0.0.0/0 
+        --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:9000,tcp:5000,tcp:8000,tcp:10000,tcp:8800,tcp:6000 --source-ranges=0.0.0.0/0 
 fi
 
 # Remove docker container
