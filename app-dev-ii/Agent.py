@@ -148,13 +148,14 @@ if __name__ == '__main__':
             with col_A:
                 
                 code_text = st.text_area("Code")
-                prompt = st.text_area("Prompt")
-                prompt = f"This is the code: \n\n {code_text} \n\n {prompt}"
+                prompt_text = st.text_area("Prompt")
+                prompt = f"This is the code: \n\n {code_text} \n\n {prompt_text}"
                 button = st.button("Generate")
                 button_stream = st.button("Generate (Stream)")
+                if button or button_stream:
+                    st.info(f"Total Code and Text Characters: {len(code_text + prompt)} \n Code: {len(code_text)} \n Text {len(prompt)}")
                 refresh = st.button("Refresh")
                 # button_multi_turn = st.button("Generate (Multi-Turn)")
-
 
             with col_B:
                 start = t.time()
