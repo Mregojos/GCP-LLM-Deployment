@@ -127,6 +127,7 @@ def multimodal(con, cur):
     total_prompt = 0
     button = False
     prompt_user_chat = None
+    button_streaming = False
     model = ""
     total_prompt_limit = 4
     count_prompt = 1
@@ -147,7 +148,7 @@ def multimodal(con, cur):
     #------------------ Guest Counter ------------------#
     if GUEST == True:
         input_name = default_name
-    LIMIT = 18
+    LIMIT = 2
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
