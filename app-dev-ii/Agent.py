@@ -113,7 +113,7 @@ if __name__ == '__main__':
                     st.markdown(response.text)
                     # st.text(mm_chat.history)
                     end = t.time()
-                    # st.caption(f"Total Processing Time: {end - start}")
+                    st.caption(f"Total Processing Time: {end - start}")
                 if prompt and button_stream:
                     response_ = ""
                     response = mm_chat.send_message(prompt, stream=True)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                     st.info("Output in markdown \n")
                     st.markdown(response_)
                     end = t.time()
-                    # st.caption(f"Total Processing Time: {end - start}")
+                    st.caption(f"Total Processing Time: {end - start}")
                 # if prompt and button_multi_turn:            
                 #    pass
                     # st.caption(f"Total Processing Time: {end - start}")
@@ -153,7 +153,10 @@ if __name__ == '__main__':
                 button = st.button("Generate")
                 button_stream = st.button("Generate (Stream)")
                 if button or button_stream:
-                    st.info(f"Total Code and Text Characters: {len(code_text + prompt)} \n Code: {len(code_text)} \n Text {len(prompt)}")
+                    st.info(f"""Total Code and Text Characters: {len(code_text + prompt_text)} 
+                            \n Code: {len(code_text)} 
+                            \n Text: {len(prompt_text)}
+                            """)
                 refresh = st.button("Refresh")
                 # button_multi_turn = st.button("Generate (Multi-Turn)")
 
@@ -166,7 +169,7 @@ if __name__ == '__main__':
                     st.markdown(response.text)
                     # st.text(mm_chat.history)
                     end = t.time()
-                    # st.caption(f"Total Processing Time: {end - start}")
+                    st.caption(f"Total Processing Time: {end - start}")
                 if prompt and button_stream:
                     response_ = ""
                     response = mm_chat.send_message(prompt, stream=True)
@@ -177,7 +180,7 @@ if __name__ == '__main__':
                     st.info("Output in markdown \n")
                     st.markdown(response_)
                     end = t.time()
-                    # st.caption(f"Total Processing Time: {end - start}")
+                    st.caption(f"Total Processing Time: {end - start}")
                 # if prompt and button_multi_turn:            
                 #    pass
                     # st.caption(f"Total Processing Time: {end - start}")
