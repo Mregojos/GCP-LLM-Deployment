@@ -181,7 +181,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal (Four Turn)", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Text Only", "Chat Text Only (Four Turn)", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal (Multi-Turn)", "Multimodal with DB", "Vision (One Turn)", "Vision (One Turn) with DB", "Chat Text Only", "Chat Text Only (Multi-Turn)", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -192,7 +192,7 @@ def multimodal(con, cur):
         prompt_history = "You are an intelligent Agent."
         
         multimodal_info = f":violet[{model}  Model]. This model stores prompt history only."
-        multimodal_four_turn_info = f"For :violet[{model} (Four Turn) Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        multimodal_four_turn_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
@@ -325,9 +325,9 @@ def multimodal(con, cur):
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
         model = "Multimodal"
         
-    #-------------------Multimodal (Four Turn)---------------------#
-    if model == "Multimodal (Four Turn)":
-        current_model = "Multimodal (Four Turn)"
+    #-------------------Multimodal (Multi-Turn)---------------------#
+    if model == "Multimodal (Multi-Turn)":
+        current_model = "Multimodal (Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input("What do you want to talk about? ")
         with st.sidebar:
@@ -433,7 +433,7 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-        model = "Multimodal (Four Turn)"
+        model = "Multimodal (Multi-Turn)"
         
     #-------------------Multi-Modal with DB---------------------#
     if model == "Multimodal with DB":
@@ -758,9 +758,9 @@ def multimodal(con, cur):
             
         model = "Chat Text Only"
             
-    #-------------------Chat Text Only (Four Turn)---------------------#
-    if model == "Chat Text Only (Four Turn)":
-        current_model = "Chat Text Only (Four Turn)"
+    #-------------------Chat Text Only (Multi-Turn)---------------------#
+    if model == "Chat Text Only (Multi-Turn)":
+        current_model = "Chat Text Only (Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         with st.sidebar:
@@ -834,7 +834,7 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
             
-        model = "Chat Text Only (Four Turn)"
+        model = "Chat Text Only (Multi-Turn)"
         
     #-------------------Chat Text Only with DB---------------------#
     if model == "Chat Text Only with DB":

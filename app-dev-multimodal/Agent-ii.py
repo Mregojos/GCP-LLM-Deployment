@@ -192,7 +192,7 @@ def multimodal(con, cur):
         prompt_history = "You are an intelligent Agent."
         
         multimodal_info = f":violet[{model}  Model]. This model stores prompt history only."
-        multimodal_four_turn_info = f"For :violet[{model} (Multi-Turn) Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
+        multimodal_four_turn_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
         multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
