@@ -182,7 +182,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal", "Multimodal (One-Turn)", "Multimodal (Multi-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)",  "Chat Text Only", "Chat Text Only (Multi-Turn)", "Chat Text Only with DB", "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Chat Text Only (Multi-Turn)",  "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -223,8 +223,8 @@ def multimodal(con, cur):
 
     #-------------------Conversation starts here---------------------#
     #-------------------Multimodal---------------------#
-    if model == "Multimodal":
-        current_model = "Multimodal"
+    if model == "Multimodal (Multi-Turn)":
+        current_model = "Multimodal (Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         prompt_history = ""
@@ -247,7 +247,7 @@ def multimodal(con, cur):
                     image_data_base_string = ""
             
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-            button = st.button("Send")
+            button = st.button("Generate")
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -332,7 +332,8 @@ def multimodal(con, cur):
                 message = st.chat_message("assistant")
                 message.markdown(output)
                 message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-        model = "Multimodal"
+        
+        model = "Multimodal (Multi-Turn)"
         
     #-------------------Multimodal (One-Turn)---------------------#
     if model == "Multimodal (One-Turn)":
@@ -459,116 +460,6 @@ def multimodal(con, cur):
 
         
         model = "Multimodal (One-Turn)"
-        
-    #-------------------Multimodal (Multi-Turn)---------------------#
-    if model == "Multimodal (Multi-Turn)":
-        current_model = "Multimodal (Multi-Turn)"
-        st.info(info_sample_prompts)
-        prompt_user_chat = st.chat_input("What do you want to talk about? ")
-        with st.sidebar:
-            image = st.checkbox("Add a photo")
-            if image:
-                uploaded_file = st.file_uploader("Upload a photo", type=["jpg", "jpeg", "png"])
-                if uploaded_file is not None:
-                    image_data = uploaded_file.read()
-                    image_name = uploaded_file.name
-                    st.image(image_data, image_name)
-                    image_data_base = base64.b64encode(image_data)
-                    image_data_base_string = base64.b64encode(image_data).decode("utf-8")
-                    # image_data_base_string_data = base64.b64decode(image_data_base_string)
-                    # st.image(image_data_base_string_data)
-                    image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
-                    responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
-                    current_image_detail = responses.text
-                else:
-                    image_data_base_string = ""
-            # video = st.checkbox("Add a video")
-            # if video:
-            #     pass
-            
-            # Four prompts (short-memory) only
-            cur.execute(f"""
-                SELECT COUNT(*) 
-                FROM multimodal
-                WHERE name='{input_name}'
-                """)
-            total_prompt =cur.fetchone()[0]
-            if total_prompt <= total_prompt_limit:
-                if total_prompt < total_prompt_limit: 
-                    button = True
-                    button = st.button("Send")
-                elif total_prompt >= total_prompt_limit:
-                    button = False
-                    prompt_user_chat = False
-                    
-            if button or prompt_user_chat:
-                if prompt_user_chat:
-                    prompt_user = prompt_user_chat
-                if prompt_user == "":
-                    st.info("Prompt cannot be empty.")
-                if (len(prompt_user) >= prompt_character_limit) and GUEST:
-                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
-                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
-                    current_start_time = t.time() 
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM multimodal
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)
-                    try:
-                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-                            response = mm_chat.send_message(prompt, generation_config=mm_config)
-                        if uploaded_file is not None:
-                            response = mm_chat.send_message(f"{prompt_user}. I add an image: {current_image_detail}"  , generation_config=mm_config)
-                            output = response.text
-                        else:
-                            response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                            output = response.text
-                    except:
-                        output = prompt_error
-
-                    input_characters = len(prompt_user)
-                    output_characters = len(output)
-                    end_time = t.time() 
-                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit()
-                    
-            st.info(multimodal_four_turn_info)
-            
-            prune = st.button(":red[Prune History]")
-            if prune:
-                cur.execute("DROP TABLE multimodal")
-                st.info(prompt_prune_info)
-                con.commit()
-                st.rerun()
-                
-        cur.execute(f"""
-        SELECT * 
-        FROM multimodal
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-            message = st.chat_message("user")
-            message.write(f":blue[{name}]") 
-            if saved_image_data_base_string is not "":
-                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                message.image(image_data_base_string_data)
-                message.text(f"{prompt}")
-                message.caption(f"{time} | Input Characters: {total_input_characters}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}" )                 
-            elif saved_image_data_base_string is "":
-                message.text(f"{prompt}")
-                message.caption(f"{time} | Input Characters: {total_input_characters}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-        model = "Multimodal (Multi-Turn)"
 
     #-------------------Vision---------------------#
     if model == "Vision (One-Turn)":
@@ -778,10 +669,11 @@ def multimodal(con, cur):
         model = "Text Only (One-Turn)"
 
     #-------------------Chat Text Only---------------------#
-    if model == "Chat Text Only":
-        current_model = "Chat Text Only"
+    if model == "Chat Text Only (Multi-Turn)":
+        current_model = "Chat Text Only (Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
+        prompt_history = ""
         with st.sidebar:
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
             button = st.button("Send")
@@ -802,13 +694,14 @@ def multimodal(con, cur):
                             """)                    
                     try:
                         for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = f"""{prompt_history}
-                                             \n prompt {id}: {prompt} 
-                                              """
+                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            
+                        if prompt_history == "":
+                            response = mm_model.generate_content(prompt_user)                         
                         if prompt_history != "":
-                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        output = response.text
+                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                            response = mm_model.generate_content(prompt_history)
+                        output = response.text   
                     except:
                         output = prompt_error
 
@@ -820,85 +713,6 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit() 
                     
-            st.info(chat_info) 
-            prune = st.button(":red[Prune History]")
-            if prune:
-                cur.execute("DROP TABLE chats_mm")
-                st.info(prompt_prune_info)
-                con.commit()
-                st.rerun()
-                    
-        cur.execute(f"""
-        SELECT * 
-        FROM chats_mm
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-            message = st.chat_message("user")
-            message.write(f":blue[{name}]") 
-            message.text(f"{prompt}")
-            message.caption(f"{time} | Input Characters: {total_input_characters}")
-            message = st.chat_message("assistant")
-            message.markdown(output)
-            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-            
-        model = "Chat Text Only"
-            
-    #-------------------Chat Text Only (Multi-Turn)---------------------#
-    if model == "Chat Text Only (Multi-Turn)":
-        current_model = "Chat Text Only (Multi-Turn)"
-        st.info(info_sample_prompts)
-        prompt_user_chat = st.chat_input(prompt_user_chat_)
-        with st.sidebar:
-            # Four prompts (short-memory) only
-            cur.execute(f"""
-                SELECT COUNT(*) 
-                FROM chats_mm
-                WHERE name='{input_name}'
-                """)
-            total_prompt =cur.fetchone()[0]
-            if total_prompt <= total_prompt_limit:
-                if total_prompt < total_prompt_limit: 
-                    button = True 
-                    button = st.button("Send")
-                elif total_prompt >= total_prompt_limit:
-                    button = False
-                    prompt_user_chat = False
-                    
-            if button or prompt_user_chat:
-                if prompt_user_chat:
-                    prompt_user = prompt_user_chat
-                if prompt_user == "":
-                    st.info("Prompt cannot be empty.")
-                if (len(prompt_user) >= prompt_character_limit) and GUEST:
-                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
-                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
-                    current_start_time = t.time() 
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM chats_mm
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)                    
-                    try:
-                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            response = mm_chat.send_message(prompt, generation_config=mm_config)
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        output = response.text
-                    except:
-                        output = prompt_error
-
-                    output_characters = len(output)
-                    characters = len(prompt_user)
-                    end_time = t.time() 
-                    SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit()       
-
-            st.info(chat_four_turn_info) 
-            
             prune = st.button(":red[Prune History]")
             if prune:
                 cur.execute("DROP TABLE chats_mm")
@@ -922,94 +736,6 @@ def multimodal(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
             
         model = "Chat Text Only (Multi-Turn)"
-        
-    #-------------------Chat Text Only with DB---------------------#
-    if model == "Chat Text Only with DB":
-        current_model = "Chat Text Only with DB"
-        st.info(info_sample_prompts)
-        prompt_user_chat = st.chat_input(prompt_user_chat_)
-        with st.sidebar:
-            button = st.button("Send")
-            if button or prompt_user_chat:
-                if prompt_user_chat:
-                    prompt_user = prompt_user_chat
-                if prompt_user == "":
-                    st.info("Prompt cannot be empty.")
-                if (len(prompt_user) >= prompt_character_limit) and GUEST:
-                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
-                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
-                    current_start_time = t.time() 
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM chats_mm_db
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)            
-                    for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                             \n ------------
-                                             \n {name}: {prompt} 
-                                             \n Model Output: {output}
-                                             \n ------------
-                                             \n
-                                              """
-                    try:
-                        response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        if response != " ":
-                            output = response.text
-                        elif response == "" or response == None:
-                            output = prompt_error
-                        else:
-                            output = prompt_error
-                    except:
-                        output = prompt_error
-         
-                    characters = len(prompt_history + prompt_user)
-                    input_characters = len(prompt_user)
-                    output_characters = len(output)
-                    end_time = t.time()
-                    SQL = "INSERT INTO chats_mm_db (name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, prompt_user, output, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit()
-
-                    # For Character limit
-                    if characters >= character_limit:
-                        cur.execute(f"""
-                                    UPDATE chats_mm_db
-                                    SET prompt=NULL
-                                    """)
-                        cur.execute(f"""
-                                    UPDATE chats_mm_db
-                                    SET output=NULL
-                                    """)
-                        con.commit()
-                    # st.write(characters)
-                        
-            st.info(chat_db_info)
-
-            prune = st.button(":red[Prune History]")
-            if prune:
-                cur.execute("DROP TABLE chats_mm_db")
-                st.info(prompt_prune_info)
-                con.commit()
-                st.rerun()
-                    
-        cur.execute(f"""
-        SELECT * 
-        FROM chats_mm_db
-        WHERE name='{input_name}'
-        ORDER BY time ASC
-        """)
-        for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-            message = st.chat_message("user")
-            message.write(f":blue[{name}]") 
-            message.text(f"{input_prompt}")
-            message.caption(f"{time} | Input Characters: {total_input_characters}")
-            message = st.chat_message("assistant")
-            message.markdown(output_history)
-            message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
             
     #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
     if model == "Chat Text Only (Latest vs Old Version)":
