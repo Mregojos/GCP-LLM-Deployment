@@ -46,8 +46,6 @@ def connection():
     # Multimodal
     # cur.execute("DROP TABLE multimodal")
     cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
-    # cur.execute("DROP TABLE multimodal_db")
-    cur.execute("CREATE TABLE IF NOT EXISTS multimodal_db(id serial PRIMARY KEY, name varchar, prompt varchar, input_prompt varchar, output varchar, output_history varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_characters int, total_output_characters int)")
     
     # Vision
     # cur.execute("DROP TABLE vision_db")
@@ -56,8 +54,6 @@ def connection():
     # Chat Text Only
     # cur.execute("DROP TABLE chats_mm")
     cur.execute("CREATE TABLE IF NOT EXISTS chats_mm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
-    # cur.execute("DROP TABLE chats_mm_db")
-    cur.execute("CREATE TABLE IF NOT EXISTS chats_mm_db(id serial PRIMARY KEY, name varchar, prompt varchar, input_prompt varchar, output varchar, output_history varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
     # cur.execute("DROP TABLE chats")
     cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, input_prompt varchar, output varchar, output_history varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
 
@@ -165,7 +161,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Chat Text Only (Multi-Turn)",  "Text Only (Latest vs Old Version / Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Text Only (Multi-Turn)",  "Text Only (Latest vs Old Version / Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -189,7 +185,7 @@ def multimodal(con, cur):
             st.info("Guest daily limit has been reached.")
 
             # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" is not included.
-            guest_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
+            guest_DB = ["multimodal", "vision_db", "chats_mm", "chats"]
             for DB in guest_DB:
                 cur.execute(f"DROP TABLE {DB}")
             con.commit()
@@ -197,7 +193,7 @@ def multimodal(con, cur):
         st.info("Guest daily limit has been reached.")
 
     #-------------------Conversation starts here---------------------#
-    #-------------------Multimodal---------------------#
+    #-------------------Multimodal (Multi-Turn)---------------------#
     if model == "Multimodal (Multi-Turn)":
         current_model = "Multimodal (Multi-Turn)"
         st.info(info_sample_prompts)
@@ -384,8 +380,6 @@ def multimodal(con, cur):
                         output = prompt_error
 
                 input_characters = len(prompt_user)
-                
-            # st.info(multimodal_info)
             
             refresh = st.button(":blue[Reset]")
             if refresh:
@@ -644,8 +638,8 @@ def multimodal(con, cur):
         model = "Text Only (One-Turn)"
 
     #-------------------Chat Text Only---------------------#
-    if model == "Chat Text Only (Multi-Turn)":
-        current_model = "Chat Text Only (Multi-Turn)"
+    if model == "Text Only (Multi-Turn)":
+        current_model = "Text Only (Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         prompt_history = ""
@@ -710,7 +704,7 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
             
-        model = "Chat Text Only (Multi-Turn)"
+        model = "Text Only (Multi-Turn)"
             
     #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
     if model == "Text Only (Latest vs Old Version / Multi-Turn)":
@@ -983,7 +977,7 @@ def multimodal(con, cur):
                 # All Guest and Admin DB
                 prune_db = st.button(":red[Prune Guest and Admin DB]")
                 if prune_db or prune_all:
-                    admin_DB = ["multimodal", "multimodal_db", "vision_db", "chats_mm", "chats_mm_db", "chats"]
+                    admin_DB = ["multimodal", "vision_db", "chats_mm", "chats"]
                     for DB in admin_DB:
                         cur.execute(f"DROP TABLE {DB}")
                     con.commit()
