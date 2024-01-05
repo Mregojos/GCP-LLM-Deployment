@@ -4,6 +4,7 @@ import psycopg2
 import os
 import time as t
 import vertexai
+from vertexai.language_models import TextGenerationModel, CodeGenerationModel
 from vertexai.language_models import ChatModel, InputOutputTextPair
 from vertexai.language_models import CodeChatModel
 from vertexai.preview.generative_models import GenerativeModel, Part
@@ -94,31 +95,13 @@ def models():
     }
     
     #----------Vertex AI Chat----------#
-    chat_parameters = {
-        "candidate_count": 1,
-        "max_output_tokens": 1024,
-        "temperature": 0.2,
-        "top_p": 0.8,
-        "top_k": 40
-    }
-    chat_model = ChatModel.from_pretrained("chat-bison")
-    chat = chat_model.start_chat(
-        # context=f"""I am an intelligent agent."""
-    )
+    text_model = TextGenerationModel.from_pretrained("text-bison")
 
     #----------Vertex AI Code----------#
-    code_parameters = {
-        "candidate_count": 1,
-        "max_output_tokens": 1024,
-        "temperature": 0.2
-    }
-    code_chat_model = CodeChatModel.from_pretrained("codechat-bison")
-    code_chat = code_chat_model.start_chat(
-        # context=f"""I am an intelligent agent."""
-    )
+    code_model = CodeGenerationModel.from_pretrained("code-bison")
     
 
-    return mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters
+    return mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, text_model, code_model
 
 
 #----------- Multimodal, Chat, Multimodal with Database, Vision (One-Turn), Vision with DB, Chat with DB --------------#
@@ -182,7 +165,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Chat Text Only (Multi-Turn)",  "Chat Text Only (Latest vs Old Version)", "Chat Text Only (Old Version)", "Code (Old Version)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Chat Text Only (Multi-Turn)",  "Text Only (Latest vs Old Version / Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -192,17 +175,9 @@ def multimodal(con, cur):
         #------------------ prompt_info ------------------#
         prompt_history = "You are an intelligent Agent."
         
-        multimodal_info = f":violet[{model}  Model]. This model stores prompt history only."
-        multimodal_four_turn_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-        multimodal_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
-        chat_info = f":violet[{model}  Model]. This model stores prompt history only."
-        chat_four_turn_info = f"For :violet[{model} Model], chat history (short-term memory) is purposely limited to four prompts only. :red[Prune history] to clear the previous prompts or use other models."
-        chat_db_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
-        chat_old_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
-        code_old_info = f":violet[{model}] Memory is limited to {character_limit_w} only. Once it reaches the limit, all data in the memory will be deleted, but the prompt history can still be viewed in the conversation."
         
         prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
         prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
@@ -738,7 +713,7 @@ def multimodal(con, cur):
         model = "Chat Text Only (Multi-Turn)"
             
     #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
-    if model == "Chat Text Only (Latest vs Old Version)":
+    if model == "Text Only (Latest vs Old Version / Multi-Turn)":
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         prompt_history = ""
@@ -763,13 +738,14 @@ def multimodal(con, cur):
                             """)                    
                     try:
                         for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = f"""{prompt_history}
-                                             \n prompt {id}: {prompt} 
-                                              """
+                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            
+                        if prompt_history == "":
+                            response = mm_model.generate_content(prompt_user)                         
                         if prompt_history != "":
-                            response = mm_chat.send_message(prompt_history, generation_config=mm_config)
-                        response = mm_chat.send_message(prompt_user, generation_config=mm_config)
-                        output = response.text
+                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                            response = mm_model.generate_content(prompt_history)
+                        output = response.text   
                     except:
                         output = prompt_error
 
@@ -791,16 +767,14 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""{prompt_history}
-                                          \n prompt {id}: {prompt} 
-                                          """
-                    try:
-                        if prompt_history != "":
-                            response = chat.send_message(prompt_history, **chat_parameters)
-                        response = chat.send_message(prompt_user, **chat_parameters)
-                        output = response.text 
-                    except:
-                        output = prompt_error
+                        prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            
+                    if prompt_history == "":
+                        response = text_model.predict(prompt_user)                         
+                    if prompt_history != "":
+                        prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                        response = text_model.predict(prompt_history)
+                    output = response.text   
 
                     characters = len(prompt_history + prompt_user)
                     input_characters = len(prompt_user)
@@ -860,11 +834,12 @@ def multimodal(con, cur):
             model = "Old Version"
 
     #-------------------Old Version---------------------------------#
-    #-------------------Chat Only (Old Version)---------------------#
-    if model == "Chat Text Only (Old Version)":
-        current_model = "Chat Text Only (Old Version)"
+    #-------------------Text Only (Old Version)---------------------#
+    if model == "Text Only (Old Version / Multi-Turn)":
+        current_model = "Text Only (Old Version / Multi-Turn)"
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
+        prompt_history = ""
         with st.sidebar: 
             current_start_time = t.time()
             button = st.button("Send")
@@ -884,19 +859,14 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                         \n ------------
-                                         \n {name}: {prompt} 
-                                         \n Model Output: {output}
-                                         \n ------------
-                                         \n
-                                         """
-                    try:
-                        response = chat.send_message(prompt_history, **chat_parameters)
-                        response = chat.send_message(prompt_user, **chat_parameters)
-                        output = response.text 
-                    except:
-                        output = prompt_error
+                        prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            
+                    if prompt_history == "":
+                        response = text_model.predict(prompt_user)                         
+                    if prompt_history != "":
+                        prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                        response = text_model.predict(prompt_history)
+                    output = response.text   
 
                     characters = len(prompt_history + prompt_user)
                     input_characters = len(prompt_user)
@@ -906,21 +876,6 @@ def multimodal(con, cur):
                     data = (input_name, prompt_user, prompt_user, output, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
                     cur.execute(SQL, data)
                     con.commit()
-                    
-                    # For Character limit
-                    if characters >= character_limit:
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET prompt=NULL
-                                    """)
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET output=NULL
-                                    """)
-                        con.commit()
-                    # st.write(characters)
-                        
-            st.info(chat_old_info)
 
             prune = st.button(":red[Prune History]")
             if prune:
@@ -928,12 +883,15 @@ def multimodal(con, cur):
                 st.info(prompt_prune_info)
                 con.commit()
                 st.rerun()
+        
+        model = "Text Only (Old Version / Multi-Turn)"
                 
     #-------------------Code (Old Version)---------------------#
-    if model == "Code (Old Version)":
-        current_model = "Code (Old Version)"
+    if model == "Code (Old Version / Multi-Turn)":
+        current_model = "Code Only (Old Version / Multi-Turn)"
         st.info(info_sample_prompts)
-        prompt_user_chat = st.chat_input("What do you want to talk about?")
+        prompt_user_chat = st.chat_input(prompt_user_chat_)
+        prompt_history = ""
         with st.sidebar: 
             current_start_time = t.time()
             button = st.button("Send")
@@ -951,21 +909,16 @@ def multimodal(con, cur):
                             FROM chats
                             WHERE name='{input_name}'
                             ORDER BY time ASC
-                            """)
+                            """) 
                     for id, name, prompt, input_prompt, output, output_history, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                        prompt_history = f"""
-                                         \n ------------
-                                         \n {name}: {prompt} 
-                                         \n Model Output: {output}
-                                         \n ------------
-                                         \n
-                                         """
-                    try:
-                        response = code_chat.send_message(prompt_history, **code_parameters)
-                        response = code_chat.send_message(prompt_user, **code_parameters)
-                        output = response.text 
-                    except:
-                        output = prompt_error
+                        prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            
+                    if prompt_history == "":
+                        response = code_model.predict(prompt_user)                         
+                    if prompt_history != "":
+                        prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                        response = code_model.predict(prompt_history)
+                    output = response.text   
 
                     characters = len(prompt_history + prompt_user)
                     input_characters = len(prompt_user)
@@ -976,30 +929,17 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit()
 
-                    # For Character limit
-                    if characters >= character_limit:
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET prompt=NULL
-                                    """)
-                        cur.execute(f"""
-                                    UPDATE chats
-                                    SET output=NULL
-                                    """)
-                        con.commit()
-                    # st.write(characters)
-                        
-            st.info(code_old_info)
-            
             prune = st.button(":red[Prune History]")
             if prune:
                 cur.execute("DROP TABLE chats")
                 st.info(prompt_prune_info)
                 con.commit()
                 st.rerun()
+        
+        model = "Code (Old Version / Multi-Turn)"
             
-    #-------------------Chat Only and Code (Old Version)---------------------#
-    if model == "Chat Text Only (Old Version)" or model == "Code (Old Version)":
+    #-------------------Text and Code (Old Version)---------------------#
+    if model == "Text Only (Old Version / Multi-Turn)" or model == "Code (Old Version / Multi-Turn)":
         cur.execute(f"""
         SELECT * 
         FROM chats
@@ -1083,7 +1023,7 @@ if __name__ == '__main__':
     if con == True:
         # Connection
         con, cur = connection()
-        mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, chat, chat_parameters, code_chat, code_parameters  = models()
+        mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, text_model, code_model  = models()
         with st.sidebar:
             st.header(":computer: Multimodal Agent ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
