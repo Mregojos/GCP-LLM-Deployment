@@ -457,7 +457,7 @@ def multimodal(con, cur):
                         # st.image(image_data_base_string_data)
                         image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
                 start_time = t.time() 
-                button = st.button("Send")
+                button = st.button("Generate")
                 if button:
                     if (len(prompt_user) >= prompt_character_limit) and GUEST:
                         st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
@@ -499,7 +499,7 @@ def multimodal(con, cur):
                     # image_data_base_string_data = base64.b64decode(image_data_base_string)
                     # st.image(image_data_base_string_data)
                     image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")            
-            button = st.button("Send")
+            button = st.button("Generate")
             if button:
                 if (len(prompt_user) >= prompt_character_limit) and GUEST:
                     st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
@@ -651,7 +651,7 @@ def multimodal(con, cur):
         prompt_history = ""
         with st.sidebar:
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
-            button = st.button("Send")
+            button = st.button("Generate")
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -718,7 +718,7 @@ def multimodal(con, cur):
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         prompt_history = ""
         with st.sidebar:
-            button = st.button("Send")
+            button = st.button("Generate")
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -842,7 +842,7 @@ def multimodal(con, cur):
         prompt_history = ""
         with st.sidebar: 
             current_start_time = t.time()
-            button = st.button("Send")
+            button = st.button("Generate")
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -894,7 +894,7 @@ def multimodal(con, cur):
         prompt_history = ""
         with st.sidebar: 
             current_start_time = t.time()
-            button = st.button("Send")
+            button = st.button("Generate")
             if button or prompt_user_chat:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
