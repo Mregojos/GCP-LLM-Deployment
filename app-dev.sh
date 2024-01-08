@@ -1,5 +1,6 @@
 # For App Development with its own database
 # sh app-dev.sh
+# sh app-dev-cleanup.sh for cleanup
 
 #----------Enable Artifact Registry, Cloud Build, and Cloud Run, Vertex AI
 # gcloud services list --available
