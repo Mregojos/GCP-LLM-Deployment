@@ -642,18 +642,21 @@ def multimodal(con, cur):
             message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
 
         elif button_streaming and OUTPUT == True:
-            message = st.chat_message("user")
-            message.write(f":blue[{input_name}]") 
-            message.text(f"{prompt_user}")
-            message.caption(f"{current_time} | Input Characters: {input_characters}")
-            message = st.chat_message("assistant")
-            for chunk in response:
-                message.markdown(chunk.text)
-                response_ = response_ + chunk.text 
-            output_characters = len(response_)
-            end_time = t.time() 
-            # message.markdown(output)
-            message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+            try: 
+                message = st.chat_message("user")
+                message.write(f":blue[{input_name}]") 
+                message.text(f"{prompt_user}")
+                message.caption(f"{current_time} | Input Characters: {input_characters}")
+                message = st.chat_message("assistant")
+                for chunk in response:
+                    message.markdown(chunk.text)
+                    response_ = response_ + chunk.text 
+                output_characters = len(response_)
+                end_time = t.time() 
+                # message.markdown(output)
+                message.caption(f"{current_time} | Model: {current_model} | Processing Time: {round(end_time-current_start_time, round_number)} seconds | Output Characters: {output_characters}")
+            except:
+                st.info(prompt_error)
         
         model = "Text Only (One-Turn)"
 
@@ -1054,7 +1057,7 @@ def multimodal(con, cur):
                     st.rerun()
                 
     #---------------- Insert into a table (total_prompts) ----------------#
-    if button or prompt_user_chat:
+    if button or prompt_user_chat or button_streaming:
         SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
         data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
         cur.execute(SQL, data)
