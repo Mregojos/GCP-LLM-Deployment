@@ -1,5 +1,5 @@
 # Directory
-cd app-dev-ii
+cd multimodal-app-collection
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"

@@ -8,7 +8,7 @@ gcloud services enable compute.googleapis.com iam.googleapis.com cloudbuild.goog
 echo "\n #----------Services have been successfully enabled.----------# \n"
 
 # Directory
-cd app-dev-multimodal
+cd app-multimodal
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"
