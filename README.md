@@ -12,38 +12,56 @@
 
 ---
 ## Setup
+
+### For Multimodal Agent / Chatbot (One-Turn / Multi-Turn)
 ```sh
 # Environment Variables
 source env*
 
-# Infra
-sh infra*
+# Deployment (Google Cloud Services)
+sh infrastructure-automation-multimodal.sh
 
 # Dev
-sh app-dev-multimodal.sh
+sh app-dev.sh
 
 # Test
 make run_test
 
 # Cleanup
 sh cleanup-multimodal.sh
+sh app-dev-cleanup.sh
 
 ---
 # Using makefile
 # Environment Variables
 source env*
 
-# Infra
+# Deployment (Google Cloud Services)
 make infra_setup
 
 # Dev
-make dev_setup
+make run_dev
 
 # Test
 make run_test
 
 # Cleanup
 make cleanup
+make run_dev_cleanup
+
+```
+
+### For Multimodal App Collection and CLI
+```sh
+# Multimodal App Collection
+sh app-collection.sh 
+
+# CLI
+sh app-cli.sh
+
+# Cleanup
+sh app-collection-cleanup.sh
+sh app-cli-cleanup.sh
 ```
 
 ---
@@ -55,4 +73,5 @@ make cleanup
 ---
 ## Resources
 * Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
+* Deployed Web App: https://mattcloudtech.com/Agent
 * Site Model Deployment Repository: https://github.com/mregojos/model-deployment
