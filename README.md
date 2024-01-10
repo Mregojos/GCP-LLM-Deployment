@@ -3,7 +3,13 @@
 ---
 ## Objective
 * To test the new multimodal model capabilities
+* To develop web apps and cli using the multimodal model
+* To add database for storing prompts and outputs history
 * To deploy the new multimodal model using GCP services
+
+---
+## Tech Stack
+* Google Cloud, Vertex AI Models, Python, Streamlit, PostgreSQL, Psycopg2
 
 ---
 ## Prerequisite
@@ -51,14 +57,14 @@ make run_dev_cleanup
 
 ```
 
-### For Multimodal App Collection and CLI
+### For Multimodal App Collection and Multimodal in Terminal (CLI)
 ```sh
 # Multimodal App Collection
 sh app-collection.sh 
 # Cleanup
 sh app-collection-cleanup.sh
 
-# Using Multimodal with CLI
+# Using Multimodal in Terminal (CLI)
 cd app-cli
 # README.md
 # Cleanup
@@ -66,7 +72,7 @@ sh app-cli-cleanup.sh
 ```
 
 ---
-## Screenshot
+## Screenshot (Multimodal Agent / Chatbot)
 
 ![Screenshot](image/Screenshot.png)
 

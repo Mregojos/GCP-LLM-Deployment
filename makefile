@@ -37,12 +37,11 @@ run_apps:
 run_apps_cleanup:
 	sh app-collection-cleanup.sh
 
-# For Multimodal using CLI
+# For Multimodal in Terminal (CLI)
 
 run_cli:
 	# cd app-cli
 	# README.md
 
 run_cli_cleanup:
-	cd app-cli
-	sh app-cli-cleanup.sh
+	sh app-cli/app-cli-cleanup.sh
