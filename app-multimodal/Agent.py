@@ -129,7 +129,7 @@ def multimodal(con, cur):
     with st.sidebar:
         if GUEST == True:
             input_name = st.text_input("Name", default_name)
-    LIMIT = 20
+    LIMIT = 30
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
     cur.execute(f"""
@@ -148,13 +148,12 @@ def multimodal(con, cur):
     # if GUEST == False or (GUEST == True and total_count < LIMIT):
     info_sample_prompts = """
                 You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+                * List down the things you can do 
                 * What is Cloud Computing?
-                * What is Google Cloud?
-                * Important Google Cloud Services to know
+                * What is Google Cloud? Important Google Cloud Services to know
                 * Compare Site Reliability Engineering with DevOps
                 * Tell me about different cloud services
                 * Explain Cloud Computing in simple terms
-                * Tell me a funny quote related to Cloud Computing
                 """
     vision_info_ = """
                 You can now upload an image to analyze.
@@ -163,7 +162,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Text Only (One-Turn)", "Text Only (Multi-Turn)",  "Text Only (Latest vs Old Version / Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Latest vs Old Version / Multi-Turn / Text Only", "Text Only (One-Turn)", "Text Only (Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -582,6 +581,140 @@ def multimodal(con, cur):
             message.markdown(output)
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
             
+    #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
+    if model == "Latest vs Old Version / Multi-Turn / Text Only":
+        st.info(info_sample_prompts)
+        prompt_user_chat = st.chat_input(prompt_user_chat_)
+        prompt_history = ""
+        old_prompt_history = ""
+        with st.sidebar:
+            button = st.button("Generate")
+            if button or prompt_user_chat:
+                if prompt_user_chat:
+                    prompt_user = prompt_user_chat
+                if prompt_user == "":
+                    st.info("Prompt cannot be empty.")
+                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                    #-------------------Chat Text Only Latest Version---------------------#
+                    current_start_time = t.time() 
+                    current_model = "Latest Version"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM chats_mm
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """)                    
+                    try:
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+
+                            if prompt_history == "":
+                                response = mm_model.generate_content(prompt_user)                         
+                            if prompt_history != "":
+                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = mm_model.generate_content(prompt_history)
+                            output = response.text   
+                    except:
+                        output = prompt_error
+
+                    output_characters = len(output)
+                    characters = len(prompt_user)
+                    end_time = t.time() 
+                    SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                    cur.execute(SQL, data)
+                    con.commit() 
+
+                    #-------------------Chat Text Only Old Version---------------------#
+                    current_start_time = t.time()
+                    current_model = "Old Version"
+                    cur.execute(f"""
+                            SELECT * 
+                            FROM chats
+                            WHERE name='{input_name}'
+                            ORDER BY time ASC
+                            """) 
+                    try:
+                        with st.spinner("Generating..."):
+                            for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
+
+                            if old_prompt_history == "":
+                                response = code_model.predict(prompt_user)                         
+                            if old_prompt_history != "":
+                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = code_model.predict(old_prompt_history)
+                            output = response.text 
+                    except:
+                        output = prompt_error
+
+                    characters = len(old_prompt_history + prompt_user)
+                    input_characters = len(prompt_user)
+                    output_characters = len(output)
+                    end_time = t.time()
+                    SQL = "INSERT INTO chats (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
+                    cur.execute(SQL, data)
+                    con.commit()
+                    
+            st.info(chat_latest_old_info)
+            
+            refresh = st.button(":blue[Reset]")
+            if refresh:
+                st.rerun()
+            
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute("DROP TABLE chats_mm")
+                cur.execute("CREATE TABLE IF NOT EXISTS chats_mm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
+                cur.execute("DROP TABLE chats")
+                cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
+                con.commit()
+                st.info(prompt_prune_info)
+                t.sleep(sleep_time)
+                st.rerun()
+                
+        col_A, col_B = st.columns(number_columns)
+        
+        with col_A:
+            #-------------------Chat Text Only Latest Version---------------------#
+            cur.execute(f"""
+            SELECT * 
+            FROM chats_mm
+            WHERE name='{input_name}'
+            ORDER BY time ASC
+            """)
+            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                message = st.chat_message("user")
+                message.write(f":blue[{name}]") 
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+            model = "Latest Version"
+        
+        with col_B:
+            #-------------------Chat Only Old Version---------------------#
+            cur.execute(f"""
+            SELECT * 
+            FROM chats
+            WHERE name='{input_name}'
+            ORDER BY time ASC
+            """)
+            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                message = st.chat_message("user")
+                message.write(f":blue[{name}]") 
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
+            model = "Old Version"
+            
     #------------------- Text Only (One-Turn)---------------------#
     if model == "Text Only (One-Turn)":
         current_model = "Text Only (One-Turn)"
@@ -742,139 +875,7 @@ def multimodal(con, cur):
             
         model = "Text Only (Multi-Turn)"
             
-    #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
-    if model == "Text Only (Latest vs Old Version / Multi-Turn)":
-        st.info(info_sample_prompts)
-        prompt_user_chat = st.chat_input(prompt_user_chat_)
-        prompt_history = ""
-        old_prompt_history = ""
-        with st.sidebar:
-            button = st.button("Generate")
-            if button or prompt_user_chat:
-                if prompt_user_chat:
-                    prompt_user = prompt_user_chat
-                if prompt_user == "":
-                    st.info("Prompt cannot be empty.")
-                if (len(prompt_user) >= prompt_character_limit) and GUEST:
-                    st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
-                if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
-                    #-------------------Chat Text Only Latest Version---------------------#
-                    current_start_time = t.time() 
-                    current_model = "Latest Version"
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM chats_mm
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)                    
-                    try:
-                        with st.spinner("Generating..."):
-                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
 
-                            if prompt_history == "":
-                                response = mm_model.generate_content(prompt_user)                         
-                            if prompt_history != "":
-                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                                response = mm_model.generate_content(prompt_history)
-                            output = response.text   
-                    except:
-                        output = prompt_error
-
-                    output_characters = len(output)
-                    characters = len(prompt_user)
-                    end_time = t.time() 
-                    SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit() 
-
-                    #-------------------Chat Text Only Old Version---------------------#
-                    current_start_time = t.time()
-                    current_model = "Old Version"
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM chats
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """) 
-                    try:
-                        with st.spinner("Generating..."):
-                            for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
-
-                            if old_prompt_history == "":
-                                response = code_model.predict(prompt_user)                         
-                            if old_prompt_history != "":
-                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                                response = code_model.predict(old_prompt_history)
-                            output = response.text 
-                    except:
-                        output = prompt_error
-
-                    characters = len(old_prompt_history + prompt_user)
-                    input_characters = len(prompt_user)
-                    output_characters = len(output)
-                    end_time = t.time()
-                    SQL = "INSERT INTO chats (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit()
-                    
-            st.info(chat_latest_old_info)
-            
-            refresh = st.button(":blue[Reset]")
-            if refresh:
-                st.rerun()
-            
-            prune = st.button(":red[Prune History]")
-            if prune:
-                cur.execute("DROP TABLE chats_mm")
-                cur.execute("CREATE TABLE IF NOT EXISTS chats_mm(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
-                cur.execute("DROP TABLE chats")
-                cur.execute("CREATE TABLE IF NOT EXISTS chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, total_input_characters int, total_output_characters int)")
-                con.commit()
-                st.info(prompt_prune_info)
-                t.sleep(sleep_time)
-                st.rerun()
-                
-        col_A, col_B = st.columns(number_columns)
-        
-        with col_A:
-            #-------------------Chat Text Only Latest Version---------------------#
-            cur.execute(f"""
-            SELECT * 
-            FROM chats_mm
-            WHERE name='{input_name}'
-            ORDER BY time ASC
-            """)
-            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                message = st.chat_message("user")
-                message.write(f":blue[{name}]") 
-                message.text(f"{prompt}")
-                message.caption(f"{time} | Input Characters: {total_input_characters}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-            model = "Latest Version"
-        
-        with col_B:
-            #-------------------Chat Only Old Version---------------------#
-            cur.execute(f"""
-            SELECT * 
-            FROM chats
-            WHERE name='{input_name}'
-            ORDER BY time ASC
-            """)
-            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                message = st.chat_message("user")
-                message.write(f":blue[{name}]") 
-                message.text(f"{prompt}")
-                message.caption(f"{time} | Input Characters: {total_input_characters}")
-                message = st.chat_message("assistant")
-                message.markdown(output)
-                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
-            model = "Old Version"
 
     #-------------------Old Version---------------------------------#
     #-------------------Text Only (Old Version)---------------------#
@@ -1087,7 +1088,7 @@ def multimodal(con, cur):
         about_models = st.checkbox("Model Details")
         if about_models:
             st.write("""
-                    * Latest Model uses the Gemini Pro, and Gemini Pro Vision
+                    * Latest Models use Gemini Pro and Gemini Pro Vision
                     * Old Models use PaLM Text and Code
                     """)
     
@@ -1201,4 +1202,5 @@ if __name__ == '__main__':
                     > :gray[For demonstration purposes only to showcase the latest multimodal model capabilities.]
                     ---
                     """)
+
 
