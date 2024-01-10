@@ -237,25 +237,26 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """)
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
-                            
-                        if prompt_history == "":
-                            if uploaded_file is not None:
-                                response = mm_model.generate_content(f"{prompt_user}. I add an image: {current_image_detail}")
-                                output = response.text
-                            if uploaded_file is None:
-                                response = mm_model.generate_content(prompt_user)
-                                output = response.text
-                        if prompt_history != "":
-                            if uploaded_file is not None:
-                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                                response = mm_model.generate_content(f"{prompt_history}. I add an image: {current_image_detail}")
-                                output = response.text
-                            if uploaded_file is None:
-                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                                response = mm_model.generate_content(prompt_history)
-                                output = response.text
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+
+                            if prompt_history == "":
+                                if uploaded_file is not None:
+                                    response = mm_model.generate_content(f"{prompt_user}. I add an image: {current_image_detail}")
+                                    output = response.text
+                                if uploaded_file is None:
+                                    response = mm_model.generate_content(prompt_user)
+                                    output = response.text
+                            if prompt_history != "":
+                                if uploaded_file is not None:
+                                    prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                    response = mm_model.generate_content(f"{prompt_history}. I add an image: {current_image_detail}")
+                                    output = response.text
+                                if uploaded_file is None:
+                                    prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                    response = mm_model.generate_content(prompt_history)
+                                    output = response.text
                         # st.write(prompt_history)
                     except: # Exception as e:
                         # if not GUEST:
@@ -343,7 +344,6 @@ def multimodal(con, cur):
             
             
             button = st.button("Generate")
-            button_streaming = st.button("Generate (Streaming)")
             current_start_time = t.time() 
             if button or prompt_user_chat:
                 if prompt_user_chat:
@@ -355,12 +355,14 @@ def multimodal(con, cur):
                 if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
                     OUTPUT = True
                     try:
-                        if uploaded_file is not None:
-                            response = mm_model.generate_content(f"{prompt_user}. I add an image: {current_image_detail}")
-                            output = response.text
-                        if uploaded_file is None:
-                            response = mm_model.generate_content(prompt_user)
-                            output = response.text
+                        with st.spinner("Generating..."):
+                            if uploaded_file is not None:
+                                response = mm_model.generate_content(f"{prompt_user}. I add an image: {current_image_detail}")
+                                output = response.text
+                            if uploaded_file is None:
+                                response = mm_model.generate_content(prompt_user)
+                                output = response.text
+                                u,
                     except:
                         output = prompt_error
                     input_characters = len(prompt_user)
@@ -369,6 +371,7 @@ def multimodal(con, cur):
                       
             response = ""
             response_ = ""
+            button_streaming = st.button("Generate (Streaming)")
             if button_streaming:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -464,15 +467,16 @@ def multimodal(con, cur):
                         image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
                 start_time = t.time() 
                 button = st.button("Generate")
-                if button:
-                    if (len(prompt_user) >= prompt_character_limit) and GUEST:
-                        st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
-                    if uploaded_file is None:
-                        st.info("Upload file first")
-                    if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
-                        responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                        output = responses.text
-                        end_time = t.time()
+                with st.spinner("Generating..."):
+                    if button:
+                        if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                            st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
+                        if uploaded_file is None:
+                            st.info("Upload file first")
+                        if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
+                            responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                            output = responses.text
+                            end_time = t.time()
             except:
                 output = prompt_error
                 end_time = t.time()
@@ -524,21 +528,22 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """)
                     try: 
-                        for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
-                            if saved_image_data_base_string is not None:
-                                image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
-                                image_data_base = base64.b64encode(image_data_base_string_data)
-                                saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
-                                responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string in cur.fetchall():
+                                if saved_image_data_base_string is not None:
+                                    image_data_base_string_data = base64.b64decode(saved_image_data_base_string)
+                                    image_data_base = base64.b64encode(image_data_base_string_data)
+                                    saved_image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")       
+                                    responses = multimodal_model.generate_content([prompt, saved_image], generation_config=multimodal_generation_config)
+                                else:
+                                    responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
+                            if uploaded_file is not None:
+                                responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                                output = responses.text
+                                end_time = t.time()
                             else:
-                                responses = multimodal_model.generate_content(prompt, generation_config=multimodal_generation_config)
-                        if uploaded_file is not None:
-                            responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
-                            output = responses.text
-                            end_time = t.time()
-                        else:
-                            responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
-                            output = responses.text
+                                responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
+                                output = responses.text
                     except:
                             responses = multimodal_model.generate_content(prompt_user, generation_config=multimodal_generation_config)
                             output = responses.text
@@ -589,7 +594,6 @@ def multimodal(con, cur):
         OUTPUT = False
         with st.sidebar:
             button = st.button("Generate")
-            button_streaming = st.button("Generate (Streaming)")
             current_start_time = t.time() 
             if button or prompt_user_chat:
                 if prompt_user_chat:
@@ -601,8 +605,9 @@ def multimodal(con, cur):
                 if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
                     OUTPUT = True
                     try:
-                        response = mm_model.generate_content(prompt_user, generation_config=mm_config)
-                        output = response.text
+                        with st.spinner("Generating..."):
+                            response = mm_model.generate_content(prompt_user, generation_config=mm_config)
+                            output = response.text
                     except:
                         output = prompt_error
                     input_characters = len(prompt_user)
@@ -610,6 +615,7 @@ def multimodal(con, cur):
                     end_time = t.time() 
                       
             response_ = ""
+            button_streaming = st.button("Generate (Streaming)")
             if button_streaming:
                 if prompt_user_chat:
                     prompt_user = prompt_user_chat
@@ -686,15 +692,16 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """)                    
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
-                            
-                        if prompt_history == "":
-                            response = mm_model.generate_content(prompt_user)                         
-                        if prompt_history != "":
-                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                            response = mm_model.generate_content(prompt_history)
-                        output = response.text   
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+
+                            if prompt_history == "":
+                                response = mm_model.generate_content(prompt_user)                         
+                            if prompt_history != "":
+                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = mm_model.generate_content(prompt_history)
+                            output = response.text   
                     except:
                         output = prompt_error
 
