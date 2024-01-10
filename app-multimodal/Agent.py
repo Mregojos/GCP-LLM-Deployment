@@ -769,15 +769,16 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """)                    
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
-                            
-                        if prompt_history == "":
-                            response = mm_model.generate_content(prompt_user)                         
-                        if prompt_history != "":
-                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                            response = mm_model.generate_content(prompt_history)
-                        output = response.text   
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+
+                            if prompt_history == "":
+                                response = mm_model.generate_content(prompt_user)                         
+                            if prompt_history != "":
+                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = mm_model.generate_content(prompt_history)
+                            output = response.text   
                     except:
                         output = prompt_error
 
@@ -789,7 +790,7 @@ def multimodal(con, cur):
                     cur.execute(SQL, data)
                     con.commit() 
 
-                    #-------------------Chat Only Old Version---------------------#
+                    #-------------------Chat Text Only Old Version---------------------#
                     current_start_time = t.time()
                     current_model = "Old Version"
                     cur.execute(f"""
@@ -799,15 +800,16 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     try:
-                        for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
-                        
-                        if old_prompt_history == "":
-                            response = text_model.predict(prompt_user)                         
-                        if old_prompt_history != "":
-                            old_prompt_history = old_prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                            response = text_model.predict(old_prompt_history)
-                        output = response.text 
+                        with st.spinner("Generating..."):
+                            for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
+
+                            if old_prompt_history == "":
+                                response = code_model.predict(prompt_user)                         
+                            if old_prompt_history != "":
+                                old_prompt_history = old_prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = code_model.predict(old_prompt_history)
+                            output = response.text 
                     except:
                         output = prompt_error
 
@@ -901,15 +903,16 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
 
-                        if prompt_history == "":
-                            response = text_model.predict(prompt_user)                         
-                        if prompt_history != "":
-                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                            response = text_model.predict(prompt_history)
-                        output = response.text   
+                            if prompt_history == "":
+                                response = text_model.predict(prompt_user)                         
+                            if prompt_history != "":
+                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = text_model.predict(prompt_history)
+                            output = response.text   
                     except:
                         output = prompt_error
 
@@ -962,15 +965,16 @@ def multimodal(con, cur):
                             ORDER BY time ASC
                             """) 
                     try:
-                        for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
-                            prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                        with st.spinner("Generating..."):
+                            for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
 
-                        if prompt_history == "":
-                            response = code_model.predict(prompt_user)                         
-                        if prompt_history != "":
-                            prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                            response = code_model.predict(prompt_history)
-                        output = response.text   
+                            if prompt_history == "":
+                                response = code_model.predict(prompt_user)                         
+                            if prompt_history != "":
+                                prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                response = code_model.predict(prompt_history)
+                            output = response.text   
                     except:
                         output = prompt_error
 
