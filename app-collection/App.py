@@ -28,7 +28,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    layout="wide")
 
 #--------------Title----------------------#
-st.write("#### App Collection using Multimodal Model")
+st.write("#### Digital Toolkit powered by Multimodal Model")
 
 #----------Connect to a database----------# 
 def connection():
@@ -100,7 +100,7 @@ def main():
 
                 prompt = st.text_area("Prompt")
                 button = st.button("Generate")
-                button_stream = st.button("Generate (Stream)")
+                button_stream = st.button("Generate (Streaming)")
                 reset = st.button(":blue[Reset]")
                 # button_multi_turn = st.button("Generate (Multi-Turn)")
 
@@ -108,24 +108,26 @@ def main():
             with col_B:
                 start = t.time()
                 if prompt and button:
-                    response = mm_chat.send_message(prompt)
-                    # st.write(response.text)
-                    st.info("Output in markdown \n")
-                    st.markdown(response.text)
-                    # st.text(mm_chat.history)
-                    end = t.time()
-                    st.caption(f"Total Processing Time: {end - start}")
+                    with st.spinner("Generating..."):
+                        response = mm_model.generate_content(prompt)
+                        # st.write(response.text)
+                        st.info("Output in markdown \n")
+                        st.markdown(response.text)
+                        # st.text(mm_chat.history)
+                        end = t.time()
+                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
                 if prompt and button_stream:
-                    response_ = ""
-                    response = mm_chat.send_message(prompt, stream=True)
-                    st.info("Output streaming... \n")
-                    for chunk in response:
-                        st.write(chunk.text)
-                        response_ = response_ + chunk.text 
-                    st.info("Output in markdown \n")
-                    st.markdown(response_)
-                    end = t.time()
-                    st.caption(f"Total Processing Time: {end - start}")
+                    with st.spinner("Generating..."):
+                        response_ = ""
+                        response = mm_model.generate_content(prompt, stream=True)
+                        st.info("Output streaming... \n")
+                        for chunk in response:
+                            st.write(chunk.text)
+                            response_ = response_ + chunk.text 
+                        st.info("Output in markdown \n")
+                        st.markdown(response_)
+                        end = t.time()
+                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
                 # if prompt and button_multi_turn:            
                 #    pass
                     # st.caption(f"Total Processing Time: {end - start}")
