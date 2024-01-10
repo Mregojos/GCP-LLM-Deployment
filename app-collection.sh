@@ -6,7 +6,7 @@ echo "\n #----------Services have been successfully enabled.----------# \n"
 # sh app-dev-ii.sh
 
 # Directory
-cd multimodal-app-collection
+cd app-collection
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"
