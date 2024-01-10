@@ -126,8 +126,9 @@ def multimodal(con, cur):
             input_name = st.text_input("Name", default_name)
 
     #------------------ Guest Counter ------------------#
-    if GUEST == True:
-        input_name = default_name
+    with st.sidebar:
+        if GUEST == True:
+            input_name = st.text_input("Name", default_name)
     LIMIT = 20
     time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     time_date = time[0:15]
