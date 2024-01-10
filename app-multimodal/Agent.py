@@ -45,7 +45,7 @@ def connection():
     
     # Multimodal
     # cur.execute("DROP TABLE multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
+    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
     
     # Vision
     # cur.execute("DROP TABLE vision_db")
@@ -120,6 +120,8 @@ def multimodal(con, cur):
     prompt_character_limit_text = f""":red[CHARACTER LIMIT]: Exceeds the prompt character limit of :blue[{prompt_character_limit}]""" 
     sleep_time = 1
     limit_query = 1
+    id_num = 1
+    id_add = 1
     
     #------------------ Admin --------------------------#
     with st.sidebar:
@@ -148,7 +150,7 @@ def multimodal(con, cur):
     #------------------ Info and Sample prompts  --------------------------#
     # if GUEST == False or (GUEST == True and total_count < LIMIT):
     info_sample_prompts = """
-                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+                You can now start the conversation by prompting in the text bar. :smile: You can ask:
                 * List down the things you can do 
                 * What is Cloud Computing?
                 * What is Google Cloud? Important Google Cloud Services to know
@@ -238,8 +240,9 @@ def multimodal(con, cur):
                             """)
                     try:
                         with st.spinner("Generating..."):
-                            for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-                                prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                            for name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                                prompt_history = prompt_history + f"\n\n Prompt ID: {id_num}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
+                                id_num += id_add
 
                             if prompt_history == "":
                                 if uploaded_file is not None:
@@ -277,13 +280,13 @@ def multimodal(con, cur):
             
             prune = st.button(":red[Prune History]")
             if prune:
-                # cur.execute(f"""
-                #            DELETE  
-                #            FROM multimodal
-                #            WHERE name='{input_name}'
-                #            """)
-                cur.execute("DROP TABLE multimodal")
-                cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
+                cur.execute(f"""
+                            DELETE  
+                            FROM multimodal
+                            WHERE name='{input_name}'
+                            """)
+                # cur.execute("DROP TABLE multimodal")
+                # cur.execute("CREATE TABLE IF NOT EXISTS multimodal(name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
                 con.commit()
                 st.info(prompt_prune_info)
                 t.sleep(sleep_time)
@@ -295,7 +298,7 @@ def multimodal(con, cur):
         WHERE name='{input_name}'
         ORDER BY time ASC
         """)
-        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+        for name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
             message = st.chat_message("user")
             message.write(f":blue[{name}]") 
             if saved_image_data_base_string is not "":
@@ -1145,7 +1148,7 @@ if __name__ == '__main__':
         con, cur = connection()
         mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, text_model, code_model  = models()
         with st.sidebar:
-            st.header(":computer: Multimodal Agent ",divider="rainbow")
+            st.header(":brain: Multimodal Agent :computer: ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
             st.write(f"Multimodal model can write text, code, analyze images, and more.")
             st.write("""
