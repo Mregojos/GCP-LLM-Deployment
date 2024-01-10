@@ -362,7 +362,6 @@ def multimodal(con, cur):
                             if uploaded_file is None:
                                 response = mm_model.generate_content(prompt_user)
                                 output = response.text
-                                u,
                     except:
                         output = prompt_error
                     input_characters = len(prompt_user)
