@@ -28,7 +28,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    layout="wide")
 
 #--------------Title----------------------#
-st.write("#### Multimodal Model Deployment")
+st.write("#### App Collection using Multimodal Model")
 
 #----------Connect to a database----------# 
 def connection():
@@ -60,8 +60,8 @@ def models():
     return mm_model, mm_chat
 
 
-#----------Execution----------#
-if __name__ == '__main__':
+
+def main():
     # Connection
     con = False
     mm_model, mm_chat = models()
@@ -84,14 +84,13 @@ if __name__ == '__main__':
         if apps == "Text Only (One-Turn)":
 
             info_sample_prompts = """
-                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+                You can now start the conversation by prompting in the text bar. :smile: You can ask:
+                * List down the things you can do 
                 * What is Cloud Computing?
-                * What is Google Cloud?
-                * Important Google Cloud Services to know
+                * What is Google Cloud? Important Google Cloud Services to know
                 * Compare Site Reliability Engineering with DevOps
                 * Tell me about different cloud services
                 * Explain Cloud Computing in simple terms
-                * Tell me a funny quote related to Cloud Computing
                 """
             st.info(info_sample_prompts)
 
@@ -307,3 +306,20 @@ if __name__ == '__main__':
                     message = st.chat_message("assistant")
                     message.markdown(output)
                     message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+                    
+                    
+#----------Execution----------#
+if __name__ == '__main__':
+    main()
+    
+    #----------Footer----------#
+    #----------Sidebar Footer----------#
+    with st.sidebar:
+        st.markdown("""
+                    ---
+                    > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
+                    > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
+                    
+                    > :gray[For demonstration purposes only, to showcase the latest multimodal model capabilities.]
+                    ---
+                    """)
