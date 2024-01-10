@@ -1016,6 +1016,14 @@ def multimodal(con, cur):
         data = (input_name, prompt_user, output, model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
+    
+    if GUEST == True:
+        with st.sidebar:
+            guest_counter = st.checkbox("Guest Limit")
+            if guest_counter:
+                st.write(f"""
+                        * Guest Daily Limit Left: {LIMIT - total_count}
+                        """)
         
     #----------Prune Admin history and Guest limits using Admin---------#
     if (GUEST == False):
@@ -1062,6 +1070,15 @@ def multimodal(con, cur):
         data = (input_name, prompt_user, output, current_model, current_time, count_prompt)
         cur.execute(SQL, data)
         con.commit()
+        
+    #----------------- About the mnodel -------------------------------#
+    with st.sidebar:
+        about_models = st.checkbox("Model Details")
+        if about_models:
+            st.write("""
+                    * Latest Model uses the Gemini Pro, and Gemini Pro Vision
+                    * Old Models use PaLM Text and Code
+                    """)
     
 #----------Execution----------#
 if __name__ == '__main__':
