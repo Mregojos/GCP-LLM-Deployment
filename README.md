@@ -55,12 +55,13 @@ make run_dev_cleanup
 ```sh
 # Multimodal App Collection
 sh app-collection.sh 
-
-# CLI
-sh app-cli.sh
-
 # Cleanup
 sh app-collection-cleanup.sh
+
+# Using Multimodal with CLI
+cd app-cli
+# README.md
+# Cleanup
 sh app-cli-cleanup.sh
 ```
 

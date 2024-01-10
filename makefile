@@ -39,8 +39,10 @@ run_apps_cleanup:
 
 # For Multimodal using CLI
 
-run_dev_cli:
-	sh app-cli.sh
+run_cli:
+	# cd app-cli
+	# README.md
 
-run_dev_cli_cleanup:
+run_cli_cleanup:
+	cd app-cli
 	sh app-cli-cleanup.sh
