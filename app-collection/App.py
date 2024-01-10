@@ -234,6 +234,7 @@ def main():
                 You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
                 * What is this code about?
                 * How to optimize this code?
+                * Add comments
                 """
             st.info(info_sample_prompts)
 
@@ -250,7 +251,7 @@ def main():
                 if details:
                     st.info(f"""Total Code and Text Characters: {len(code_text + prompt_text)} 
                             \n Code: {len(code_text)} 
-                            \n Text: {len(prompt_text)}
+                            \n Text (Prompt): {len(prompt_text)}
                             """)
                 reset = st.button(":blue[Reset]")
 
