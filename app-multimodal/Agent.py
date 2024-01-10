@@ -793,7 +793,7 @@ def multimodal(con, cur):
                     try:
                         for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                             old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
-                        st.write(old_prompt_history)
+                        
                         if old_prompt_history == "":
                             response = text_model.predict(prompt_user)                         
                         if old_prompt_history != "":
@@ -1080,8 +1080,8 @@ if __name__ == '__main__':
             st.header(":computer: Multimodal Agent ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
             st.write(f"Multimodal model can write text, code, analyze images, and more.")
-            st.caption("""
-                        :warning: :red[Do not add sensitive data.] Your chat will be stored in a database. 
+            st.write("""
+                        ###### :warning: :red[Do not add sensitive data.] Your chat will be stored in a database.
                         
                         """)
             # st.write("Login or Continue as a guest")
