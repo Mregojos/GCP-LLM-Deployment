@@ -119,6 +119,7 @@ def multimodal(con, cur):
     prompt_character_limit = 5000 # Only Applicable to Guest
     prompt_character_limit_text = f""":red[CHARACTER LIMIT]: Exceeds the prompt character limit of :blue[{prompt_character_limit}]""" 
     sleep_time = 1
+    limit_query = 1
     
     #------------------ Admin --------------------------#
     with st.sidebar:
@@ -162,7 +163,7 @@ def multimodal(con, cur):
     with st.sidebar:
         #------------------ Prompt starts --------------------------#
         if (GUEST == False) or (GUEST == True and total_count < LIMIT): 
-            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Latest vs Old Version / Multi-Turn / Text Only", "Text Only (One-Turn)", "Text Only (Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
+            model = st.selectbox("Choose Model", (["Multimodal (Multi-Turn)", "Multimodal (One-Turn)", "Vision (One-Turn)", "Vision (One-Turn) with DB", "Latest vs Old Model / Multi-Turn / Text Only", "Text Only (One-Turn)", "Text Only (Multi-Turn)", "Text Only (Old Version / Multi-Turn)", "Code (Old Version / Multi-Turn)" ]))
             prompt_user = st.text_area("Prompt")                
             uploaded_file = None
             current_image_detail = ""
@@ -174,7 +175,7 @@ def multimodal(con, cur):
         
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
-        chat_latest_old_info = f":violet[{model}] shows and compares the latest model to the old model version."
+        chat_latest_old_info = f":violet[{model}] compares the latest model to the old model."
         
         prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
         prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
@@ -582,7 +583,7 @@ def multimodal(con, cur):
             message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds")
             
     #-------------------Comparison: Chat Text Only (Latest vs Old Version)---------------------------------------#
-    if model == "Latest vs Old Version / Multi-Turn / Text Only":
+    if model == "Latest vs Old Model / Multi-Turn / Text Only":
         st.info(info_sample_prompts)
         prompt_user_chat = st.chat_input(prompt_user_chat_)
         prompt_history = ""
@@ -681,11 +682,30 @@ def multimodal(con, cur):
         
         with col_A:
             #-------------------Chat Text Only Latest Version---------------------#
+            st.info("Latest Model") 
+            with st.expander("Latest Version Past Conversations"):
+                cur.execute(f"""
+                SELECT * 
+                FROM chats_mm
+                WHERE name='{input_name}'
+                ORDER BY time ASC
+                """)
+                for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                    message = st.chat_message("user")
+                    message.write(f":blue[{name}]") 
+                    message.text(f"{prompt}")
+                    message.caption(f"{time} | Input Characters: {total_input_characters}")
+                    message = st.chat_message("assistant")
+                    message.markdown(output)
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
+                model = "Latest Version"
+                
             cur.execute(f"""
             SELECT * 
             FROM chats_mm
             WHERE name='{input_name}'
-            ORDER BY time ASC
+            ORDER BY time DESC
+            LIMIT {limit_query}
             """)
             for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                 message = st.chat_message("user")
@@ -699,11 +719,30 @@ def multimodal(con, cur):
         
         with col_B:
             #-------------------Chat Only Old Version---------------------#
+            st.info("Old Model") 
+            with st.expander("Old Version Past Conversations"):
+                cur.execute(f"""
+                SELECT * 
+                FROM chats
+                WHERE name='{input_name}'
+                ORDER BY time ASC
+                """)
+                for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
+                    message = st.chat_message("user")
+                    message.write(f":blue[{name}]") 
+                    message.text(f"{prompt}")
+                    message.caption(f"{time} | Input Characters: {total_input_characters}")
+                    message = st.chat_message("assistant")
+                    message.markdown(output)
+                    message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}") 
+                model = "Old Version"
+                    
             cur.execute(f"""
             SELECT * 
             FROM chats
             WHERE name='{input_name}'
-            ORDER BY time ASC
+            ORDER BY time DESC
+            LIMIT {limit_query}
             """)
             for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                 message = st.chat_message("user")
