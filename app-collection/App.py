@@ -101,7 +101,7 @@ def main():
                 prompt = st.text_area("Prompt")
                 button = st.button("Generate")
                 button_stream = st.button("Generate (Stream)")
-                refresh = st.button("Refresh")
+                reset = st.button(":blue[Reset]")
                 # button_multi_turn = st.button("Generate (Multi-Turn)")
 
 
@@ -129,7 +129,7 @@ def main():
                 # if prompt and button_multi_turn:            
                 #    pass
                     # st.caption(f"Total Processing Time: {end - start}")
-                if refresh:
+                if reset:
                     st.rerun()
 
                 # for message in mm_chat.history:
