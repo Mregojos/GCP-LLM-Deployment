@@ -8,6 +8,11 @@
 * To deploy the new multimodal model using GCP services
 
 ---
+## Multimodal
+* What is Multimodal model?
+    - Multimodal Model can understand and generate text, code, images, videos, and more.
+
+---
 ## Tech Stack
 * Google Cloud, Vertex AI Models, Python, Streamlit, PostgreSQL, Psycopg2
 
@@ -22,10 +27,10 @@
 ### For Multimodal Agent / Chatbot (One-Turn / Multi-Turn)
 ```sh
 # Environment Variables
-source env*
+source app-env.sh
 
 # Deployment (Google Cloud Services)
-sh infrastructure-automation-multimodal.sh
+sh app-infra-automation.sh
 
 # Dev
 sh app-dev.sh
@@ -34,13 +39,13 @@ sh app-dev.sh
 make run_test
 
 # Cleanup
-sh cleanup-multimodal.sh
+sh app-cleanup.sh
 sh app-dev-cleanup.sh
 
 ---
 # Using makefile
 # Environment Variables
-source env*
+source app-env.sh
 
 # Deployment (Google Cloud Services)
 make infra_setup
@@ -59,10 +64,10 @@ make run_dev_cleanup
 
 ### For Multimodal App Collection and Multimodal in Terminal (CLI)
 ```sh
-# Multimodal App Collection
-sh app-collection.sh 
+# AI-Powered Toolkit for Cloud and Tech
+sh app-toolkit.sh 
 # Cleanup
-sh app-collection-cleanup.sh
+sh app-toolkit-cleanup.sh
 
 # Using Multimodal in Terminal (CLI)
 cd app-cli
