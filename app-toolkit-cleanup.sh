@@ -1,5 +1,5 @@
 # Directory
-cd app-collection
+cd app-toolkit
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"

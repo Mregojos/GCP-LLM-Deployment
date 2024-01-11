@@ -6,7 +6,7 @@ echo "\n #----------Services have been successfully enabled.----------# \n"
 # sh app-dev-ii.sh
 
 # Directory
-cd app-collection
+cd app-toolkit
 
 # App Dev Environment
 export APP_DEV_DB_INSTANCE_NAME="matt"
