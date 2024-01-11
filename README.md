@@ -62,7 +62,7 @@ make run_dev_cleanup
 
 ```
 
-### For Multimodal App Collection and Multimodal in Terminal (CLI)
+### For AI-Powered Toolkit for Cloud and Tech and Multimodal in Terminal (CLI)
 ```sh
 # AI-Powered Toolkit for Cloud and Tech
 sh app-toolkit.sh 
@@ -86,4 +86,4 @@ sh app-cli-cleanup.sh
 ## Resources
 * Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
 * Deployed Web App: https://mattcloudtech.com/Agent
-* Site Model Deployment Repository: https://github.com/mregojos/model-deployment
+* Model Deployment Web App Repository: https://github.com/mregojos/model-deployment
