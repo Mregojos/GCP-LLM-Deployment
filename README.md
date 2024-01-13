@@ -12,7 +12,7 @@
 
 ---
 ## Multimodal
-* What are Multimodal models?
+* What are Multimodal Models?
     - Multimodal Models are capable of understanding and generating text, code, images, videos, and more.
 
 ---
@@ -82,7 +82,7 @@ sh app-cli-cleanup.sh
 ---
 ## Screenshot (Multimodal Agent / Chatbot)
 
-![Screenshot](image/Screenshot.png)
+![Screenshot](image/Screenshot-ii.png)
 
 
 ---
