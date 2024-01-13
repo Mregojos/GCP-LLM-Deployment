@@ -231,7 +231,7 @@ def multimodal(con, cur):
                     prompt_user = prompt_user_chat
                 if prompt_user == "":
                     st.info("Prompt cannot be empty.")
-                if (len(prompt_user) >= prompt_character_limit) and GUEST:
+                if (len(prompt_user + prompt_history) >= prompt_character_limit) and GUEST:
                     st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
                 if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
                     current_start_time = t.time() 
