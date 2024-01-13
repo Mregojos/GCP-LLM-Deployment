@@ -208,6 +208,7 @@ def multimodal(con, cur):
             add_data = st.checkbox("Add additional information")
             if add_data:
                 prompt_history = st.text_area("Additional Information")
+                prompt_history = "Additional information: " + "\n\n" + prompt_history + "\n\n"
             if image:
                 uploaded_file = st.file_uploader("Upload a photo", type=["png"])
                 if uploaded_file is not None:
