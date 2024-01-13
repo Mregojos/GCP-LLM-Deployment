@@ -220,8 +220,8 @@ def multimodal(con, cur):
                     # image_data_base_string_data = base64.b64decode(image_data_base_string)
                     # st.image(image_data_base_string_data)
                     image = Part.from_data(data=base64.b64decode(image_data_base), mime_type="image/png")
-                    responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
-                    current_image_detail = responses.text
+                    # responses = multimodal_model.generate_content(["Explain the image in detail", image], generation_config=multimodal_generation_config)
+                    # current_image_detail = responses.text
                 else:
                     image_data_base_string = ""
             
@@ -251,25 +251,31 @@ def multimodal(con, cur):
 
                             if prompt_history == "":
                                 if uploaded_file is not None:
-                                    response = mm_model.generate_content(f"{prompt_user}. I add an image: {current_image_detail}")
-                                    output = response.text
+                                    responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                                    current_image_detail = responses.text
+                                    output = responses.text
                                 if uploaded_file is None:
                                     response = mm_model.generate_content(prompt_user)
                                     output = response.text
                             if prompt_history != "":
                                 if uploaded_file is not None:
-                                    prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
-                                    response = mm_model.generate_content(f"{prompt_history}. I add an image: {current_image_detail}")
+                                    responses = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
+                                    current_image_detail = responses.text
+                                    # prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                    # response = mm_model.generate_content(f"{prompt_history}. Image information: {current_image_detail}")
+                                    # prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
+                                    response = multimodal_model.generate_content([prompt_user, image], generation_config=multimodal_generation_config)
                                     output = response.text
                                 if uploaded_file is None:
                                     prompt_history = prompt_history + f"\n\n Prompt ID: Latest" + f"\n\n User: {prompt_user}" 
                                     response = mm_model.generate_content(prompt_history)
                                     output = response.text
                         # st.write(prompt_history)
-                    except: # Exception as e:
-                        # if not GUEST:
-                        #    st.write(e)
+                    except: 
                         output = prompt_error
+                    # except Exception as e:
+                    #    if not GUEST:
+                    #        st.write(e)
 
                     input_characters = len(prompt_user)
                     output_characters = len(output)
