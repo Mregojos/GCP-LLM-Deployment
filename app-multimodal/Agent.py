@@ -173,7 +173,7 @@ def multimodal(con, cur):
             current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
 
         #------------------ prompt_info ------------------#
-        prompt_history = "You are an intelligent Agent."
+        prompt_history = ""
         
         vision_info = f":violet[{model}] analyzes the photo you uploaded."
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
@@ -205,6 +205,9 @@ def multimodal(con, cur):
         prompt_history = ""
         with st.sidebar:
             image = st.checkbox("Add a photo")
+            add_data = st.checkbox("Add additional information")
+            if add_data:
+                prompt_history = st.text_area("Additional Information")
             if image:
                 uploaded_file = st.file_uploader("Upload a photo", type=["png"])
                 if uploaded_file is not None:
@@ -232,6 +235,7 @@ def multimodal(con, cur):
                     st.info(f"{prompt_character_limit_text}  \n\n Total Input Characters: {len(prompt_user)}")
                 if prompt_user != "" and (len(prompt_user) <= prompt_character_limit or not GUEST):
                     current_start_time = t.time() 
+                    
                     cur.execute(f"""
                             SELECT * 
                             FROM multimodal
