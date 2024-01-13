@@ -1,7 +1,7 @@
 # Multimodal Model Deployment
 
 ## Overview
-* This project demonstrates how to build, deploy, and test a multimodal model..
+* This project demonstrates how to build, deploy, and test a multimodal model.
 
 ---
 ## Objective
@@ -94,3 +94,6 @@ sh app-cli-cleanup.sh
 ---
 ## Disclaimer
 * This project is for demonstration purposes only.
+* The models in the project are works in progress and may have biases and errors.
+* The author of the project is not responsible for any damages and losses resulting from the use of this project.
+* This project is not endorsed or affiliated with Google Cloud Platform.
