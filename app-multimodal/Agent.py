@@ -151,12 +151,12 @@ def multimodal(con, cur):
     # if GUEST == False or (GUEST == True and total_count < LIMIT):
     info_sample_prompts = """
                 You can now start the conversation by prompting in the text bar. :smile: You can ask:
-                * List down the things you can do 
-                * What is Cloud Computing?
+                * List the things you are capable of doing 
+                * What is Cloud Computing? Explain it at different levels, such as beginner, intermediate, and advanced
                 * What is Google Cloud? Important Google Cloud Services to know
                 * Compare Site Reliability Engineering with DevOps
                 * Tell me about different cloud services
-                * Explain Cloud Computing in simple terms
+                * Explain Multimodal Model in simple terms
                 """
     vision_info_ = """
                 You can now upload an image to analyze.

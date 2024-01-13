@@ -84,6 +84,8 @@ sh app-cli-cleanup.sh
 
 ![Screenshot](image/Screenshot-ii.png)
 
+<img src="image/Screenshot-ii.png" width="" height="">
+
 
 ---
 ## Resources
