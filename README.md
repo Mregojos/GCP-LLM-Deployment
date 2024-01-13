@@ -1,20 +1,23 @@
 # Multimodal Model Deployment
 
+## Overview
+* This project demonstrates how to build, deploy, and test a multimodal model..
+
 ---
 ## Objective
-* To test the new multimodal model capabilities
+* To evaluate the capabilities of the new multimodal model
 * To develop web apps and cli using the multimodal model
-* To add database for storing prompts and outputs history
-* To deploy the new multimodal model using GCP services
+* To integrate a database for storing prompts and output history
+* To deploy the new multimodal model using Google Cloud services
 
 ---
 ## Multimodal
-* What is Multimodal model?
-    - Multimodal Model can understand and generate text, code, images, videos, and more.
+* What are Multimodal models?
+    - Multimodal Models are capable of understanding and generating text, code, images, videos, and more.
 
 ---
 ## Tech Stack
-* Google Cloud, Vertex AI Models, Python, Streamlit, PostgreSQL, Psycopg2
+* Google Cloud, Vertex AI Models, Python, Streamlit, PostgreSQL, Psycopg
 
 ---
 ## Prerequisite
@@ -22,7 +25,7 @@
 * Google Cloud Owner Role
 
 ---
-## Setup
+## Setup / Getting Started
 
 ### For Multimodal Agent / Chatbot (One-Turn / Multi-Turn)
 ```sh
@@ -87,3 +90,7 @@ sh app-cli-cleanup.sh
 * Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
 * Deployed Web App: https://mattcloudtech.com/Agent
 * Model Deployment Web App Repository: https://github.com/mregojos/model-deployment
+
+---
+## Disclaimer
+* This project is for demonstration purposes only.
