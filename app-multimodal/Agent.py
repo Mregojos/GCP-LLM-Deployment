@@ -1161,7 +1161,7 @@ if __name__ == '__main__':
         with st.sidebar:
             st.header(":brain: Multimodal Agent :computer: ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
-            st.write(f"Multimodal model can write text, code, analyze images, and more.")
+            st.write(f"Multimodal model can generate text, code, analyze images, and more.")
             st.write("""
                         ###### :warning: :red[Do not add sensitive data.] Your chat will be stored in a database.
                         
