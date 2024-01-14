@@ -179,7 +179,7 @@ def multimodal(con, cur):
         vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
         chat_latest_old_info = f":violet[{model}] compares the latest model to the old model."
         
-        prompt_prune_info = f"Prompt history by {input_name} was successfully deleted."
+        prompt_prune_info = f"{input_name}'s prompts and output data have successfully been deleted."
         prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
         prompt_user_chat_ = "What do you want to talk about?"
 
@@ -205,9 +205,9 @@ def multimodal(con, cur):
         prompt_history = ""
         with st.sidebar:
             image = st.checkbox("Add a photo")
-            add_data = st.checkbox("Add additional information")
+            add_data = st.checkbox("Add additional context")
             if add_data:
-                prompt_history = st.text_area("Additional Information")
+                prompt_history = st.text_area("Additional Context")
                 prompt_history = "Additional information: " + "\n\n" + prompt_history + "\n\n"
             if image:
                 uploaded_file = st.file_uploader("Upload a photo", type=["png"])
