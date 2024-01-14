@@ -2,7 +2,7 @@
 * Check out the deployed web app here: https://mattcloudtech.com/Agent
 
 ## Overview
-* This project demonstrates how to build, deploy, and test a multimodal model.
+* This project demonstrates how to build, deploy, and test a web app using a multimodal model.
 
 ---
 ## Objective
