@@ -1,4 +1,5 @@
 # Multimodal Model Deployment
+* Check out the deployed web app here: https://mattcloudtech.com/Agent
 
 ## Overview
 * This project demonstrates how to build, deploy, and test a multimodal model.
@@ -98,6 +99,7 @@ sh app-cli-cleanup.sh
 * Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
 * Deployed Web App: https://mattcloudtech.com/Agent
 * Model Deployment Web App Repository: https://github.com/mregojos/model-deployment
+* Google Cloud Vertex AI https://cloud.google.com/vertex-ai 
 
 ---
 ## Disclaimer
