@@ -300,8 +300,8 @@ def multimodal(con, cur):
                 # cur.execute("CREATE TABLE IF NOT EXISTS multimodal(name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
                 con.commit()
                 st.info(prompt_prune_info)
-                t.sleep(sleep_time)
-                st.rerun()
+                # t.sleep(sleep_time)
+                # st.rerun()
                 
         cur.execute(f"""
         SELECT * 
