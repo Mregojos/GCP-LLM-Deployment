@@ -29,16 +29,22 @@
 
 ### For Multimodal Agent / Chatbot (One-Turn / Multi-Turn)
 ```sh
-# Environment Variables
+# Use Cloud Shell, Compute Engine Instance, or Vertex AI Workbench, or Local IDE
+# Make sure you authenticate gcloud command
+
+# Clone the repository
+git clone <REPO NAME>
+
+# Set the environment variables; Change the variables according to your needs
 source app-env.sh
 
-# Deployment (Google Cloud Services)
+# Deploy the app using Google Cloud Services
 sh app-infra-automation.sh
 
-# Dev
+# For development purposes
 sh app-dev.sh
 
-# Test
+# To test the database connection and app availability
 make run_test
 
 # Cleanup
@@ -46,17 +52,17 @@ sh app-cleanup.sh
 sh app-dev-cleanup.sh
 
 ---
-# Using makefile
-# Environment Variables
+# Alternatively, use makefile
+# Set the environment variables
 source app-env.sh
 
-# Deployment (Google Cloud Services)
+# Deploy the app using Google Cloud Services
 make infra_setup
 
-# Dev
+# For development purposes
 make run_dev
 
-# Test
+# To test the database connection and app availability
 make run_test
 
 # Cleanup
