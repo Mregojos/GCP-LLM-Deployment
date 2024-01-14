@@ -30,7 +30,7 @@
 ### For Multimodal Agent / Chatbot (One-Turn / Multi-Turn)
 ```sh
 # Use Cloud Shell, Compute Engine Instance, or Vertex AI Workbench, or Local IDE
-# Make sure you authenticate gcloud command
+# Make sure to authenticate gcloud command
 
 # Clone the repository
 git clone <REPO NAME>
