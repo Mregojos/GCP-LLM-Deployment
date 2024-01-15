@@ -92,7 +92,7 @@ def main():
         # Connection
         con, cur = connection()
         
-        apps = st.selectbox("Tools", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
+        apps = st.selectbox("Toolkit", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
         
         if apps == "Text Only (One-Turn)":
             st.info(info_sample_prompts)
@@ -325,7 +325,31 @@ def main():
                     
 #----------Execution----------#
 if __name__ == '__main__':
-    main()
+    
+    with st.sidebar:
+        st.info(":violet[AI-Powered Toolkit]")
+        login = st.checkbox("Login")
+        guest = st.checkbox("Continue as a guest")
+        
+    if login and not guest:
+        with st.sidebar:
+            password = st.text_input("Password", type="password")
+            st.button("Stay login")
+        if password == ADMIN_PASSWORD:
+            main()
+    if login and guest:
+        with st.sidebar:
+            st.info("Please choose only one")
+    if not login and guest:
+        with st.sidebar:
+            guest_limit = st.button("Show Guest Limit")
+            if guest_limit:
+                st.info("Guest Daily Limit Left: ")
+        
+        # More than the Guest Limit
+        
+        # Less than the Guest Limit
+        
     
     #----------Footer----------#
     #----------Sidebar Footer----------#
