@@ -291,9 +291,10 @@ def multimodal(con, cur):
                         # except Exception as e:
                         #    if not GUEST:
                         #        st.write(e)
-
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        
+                        
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time() 
                         SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, saved_image_data_base_string, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, image_data_base_string, input_characters, output_characters)
