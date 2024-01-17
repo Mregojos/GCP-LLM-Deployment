@@ -1230,7 +1230,7 @@ if __name__ == '__main__':
             con.commit()
         if login and guest:
             with st.sidebar:
-                st.info("Choose only one")
+                st.info("Please choose only one")
         elif login:
             with st.sidebar:
                 username = st.text_input("Username", "Admin")
