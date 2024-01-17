@@ -66,13 +66,12 @@ def models():
 
 
 def main():
-    # Connection
-    con = False
     mm_model, mm_chat = models()
     column_num_A = 1.5
     column_num_B = 2
     round_number = 2
     limit_query = 1
+    count_prompt = 1
     info_sample_prompts = """
                         You can now start the conversation by prompting in the text bar. You can ask:
                         * List the things you are capable of doing 
@@ -84,143 +83,117 @@ def main():
                         """
     current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
-    prompt_user = input_name
     button_streaming = False
+    output = ""
     
-    try:
-        con, cur = connection()
-        con = True
-    except:
-        st.info("##### :computer: ```DATABASE CONNECTION: The app can't connect to the database right now. Please try again later.```")
-    if con == True:
-        # st.info("Database Connected")
-        # Connection
-        con, cur = connection()
-        
-        apps = st.selectbox("Choose a tool", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
-        
-        if apps == "Text Only (One-Turn)":
-            st.info(info_sample_prompts)
+    apps = st.selectbox("Choose a tool", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
 
-            col_A, col_B = st.columns([column_num_A, column_num_B])
+    if apps == "Text Only (One-Turn)":
+        current_model = "Text Only (One-Turn)"
+        st.info(info_sample_prompts)
 
-            with col_A:
+        col_A, col_B = st.columns([column_num_A, column_num_B])
 
-                prompt = st.text_area("Prompt")
-                button = st.button("Generate")
-                button_streaming = st.button("Generate (Streaming)")
-                reset = st.button(":blue[Reset]")
-                # button_multi_turn = st.button("Generate (Multi-Turn)")
+        with col_A:
+            user_prompt = st.text_area("Prompt")
+            button = st.button("Generate")
+            button_streaming = st.button("Generate (Streaming)")
+            reset = st.button(":blue[Reset]")
+            # button_multi_turn = st.button("Generate (Multi-Turn)")
 
 
-            with col_B:
-                start = t.time()
-                if prompt and button:
+        with col_B:
+            start = t.time()
+            if user_prompt and button:
+                with st.spinner("Generating..."):
+                    response = mm_model.generate_content(user_prompt)
+                    # st.write(response.text)
+                    st.info("Output in markdown \n")
+                    st.markdown(response.text)
+                    # st.text(mm_chat.history)
+                    end = t.time()
+                    st.caption(f"Total Processing Time: {round(end - start, round_number)}")
+            if user_prompt and button_streaming:
+                with st.spinner("Generating..."):
+                    response_ = ""
+                    response = mm_model.generate_content(user_prompt, stream=True)
+                    st.info("Output streaming... \n")
+                    for chunk in response:
+                        st.write(chunk.text)
+                        response_ = response_ + chunk.text 
+                    st.info("Output in markdown \n")
+                    st.markdown(response_)
+                    end = t.time()
+                    st.caption(f"Total Processing Time: {round(end - start, round_number)}")
+            # if prompt and button_multi_turn:            
+            #    pass
+                # st.caption(f"Total Processing Time: {end - start}")
+            if reset:
+                st.rerun()
+
+            # for message in mm_chat.history:
+            #    st.markdown(f'**{message.role}**: {message.parts[0].text}')
+
+    if apps == "Text Only (Multi-Turn)":
+        current_model = "Text Only (Multi-Turn)"
+        st.info(info_sample_prompts)
+
+        col_A, col_B = st.columns([column_num_A, column_num_B])
+
+        with col_A:
+            user_prompt = st.text_area("Prompt")
+            button = st.button("Generate")
+            reset = st.button(":blue[Reset]")
+            if reset:
+                st.rerun()
+            prune = st.button(":red[Prune History]")
+            if prune:
+                cur.execute("DROP TABLE toolkit_db")
+                st.info(f"Data was successfully deleted.")
+                con.commit()
+                st.rerun()
+
+
+        with col_B:
+            start = t.time()
+            if user_prompt and button:
+                prompt_history = ""
+                current_start_time = t.time() 
+                cur.execute(f"""
+                        SELECT * 
+                        FROM toolkit_db
+                        WHERE name='{input_name}'
+                        ORDER BY time ASC
+                        """)                    
+                try:
                     with st.spinner("Generating..."):
-                        response = mm_model.generate_content(prompt)
-                        # st.write(response.text)
-                        st.info("Output in markdown \n")
-                        st.markdown(response.text)
-                        # st.text(mm_chat.history)
-                        end = t.time()
-                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
-                if prompt and button_streaming:
-                    with st.spinner("Generating..."):
-                        response_ = ""
-                        response = mm_model.generate_content(prompt, stream=True)
-                        st.info("Output streaming... \n")
-                        for chunk in response:
-                            st.write(chunk.text)
-                            response_ = response_ + chunk.text 
-                        st.info("Output in markdown \n")
-                        st.markdown(response_)
-                        end = t.time()
-                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
-                # if prompt and button_multi_turn:            
-                #    pass
-                    # st.caption(f"Total Processing Time: {end - start}")
-                if reset:
-                    st.rerun()
+                        for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                            prompt_history = prompt_history + f"\n\n User: {prompt}" + f"\n\n Model: {output}"
 
-                # for message in mm_chat.history:
-                #    st.markdown(f'**{message.role}**: {message.parts[0].text}')
-                
-        if apps == "Text Only (Multi-Turn)":
-            current_model = "Text Only (Multi-Turn)"
-            st.info(info_sample_prompts)
+                        if prompt_history == "":
+                            response = mm_model.generate_content(user_prompt)
+                        elif prompt_history != "":
+                            prompt_history = prompt_history + f"\n\n User: {user_prompt}"
+                            response = mm_model.generate_content(prompt_history)
+                        output = response.text
+                except:
+                    output = prompt_error
 
-            col_A, col_B = st.columns([column_num_A, column_num_B])
-
-            with col_A:
-                prompt_user = st.text_area("Prompt")
-                button = st.button("Generate")
-                reset = st.button(":blue[Reset]")
-                if reset:
-                    st.rerun()
-                prune = st.button(":red[Prune History]")
-                if prune:
-                    cur.execute("DROP TABLE toolkit_db")
-                    con.commit()
-                    st.info("Done")
-                    st.rerun()
+                output_characters = len(output)
+                characters = len(user_prompt)
+                end_time = t.time() 
+                SQL = "INSERT INTO toolkit_db (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                data = (input_name, user_prompt, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                cur.execute(SQL, data)
+                con.commit() 
 
 
-            with col_B:
-                start = t.time()
-                if prompt_user and button:
-                    prompt_history = ""
-                    current_start_time = t.time() 
-                    cur.execute(f"""
-                            SELECT * 
-                            FROM toolkit_db
-                            WHERE name='{input_name}'
-                            ORDER BY time ASC
-                            """)                    
-                    try:
-                        with st.spinner("Generating..."):
-                            for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-                                prompt_history = prompt_history + f"\n\n User: {prompt}" + f"\n\n Model: {output}"
-
-                            if prompt_history == "":
-                                response = mm_model.generate_content(prompt_user)
-                            elif prompt_history != "":
-                                prompt_history = prompt_history + f"\n\n User: {prompt_user}"
-                                response = mm_model.generate_content(prompt_history)
-                            output = response.text
-                    except:
-                        output = prompt_error
-
-                    output_characters = len(output)
-                    characters = len(prompt_user)
-                    end_time = t.time() 
-                    SQL = "INSERT INTO toolkit_db (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                    data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
-                    cur.execute(SQL, data)
-                    con.commit() 
-                            
-                
-                with st.expander("Past Conversations"):
-                    cur.execute(f"""
-                    SELECT * 
-                    FROM toolkit_db
-                    WHERE name='{input_name}'
-                    ORDER BY time ASC
-                    """)
-                    for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
-                        message = st.chat_message("user")
-                        message.write(f":blue[{name}]") 
-                        message.text(f"{prompt}")
-                        message.caption(f"{time} | Input Characters: {total_input_characters}")
-                        message = st.chat_message("assistant")
-                        message.markdown(output)
-                        message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-
+            with st.expander("Past Conversations"):
                 cur.execute(f"""
                 SELECT * 
                 FROM toolkit_db
                 WHERE name='{input_name}'
-                ORDER BY time DESC
-                LIMIT {limit_query}
+                ORDER BY time ASC
                 """)
                 for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
                     message = st.chat_message("user")
@@ -230,87 +203,61 @@ def main():
                     message = st.chat_message("assistant")
                     message.markdown(output)
                     message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
-            
-            
-            
-        if apps == "Code Analysis (One-Turn)":
 
-            info_sample_prompts = """
-                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
-                * What is this code about?
-                * How to optimize this code?
-                * Add comments
-                """
-            st.info(info_sample_prompts)
+            cur.execute(f"""
+            SELECT * 
+            FROM toolkit_db
+            WHERE name='{input_name}'
+            ORDER BY time DESC
+            LIMIT {limit_query}
+            """)
+            for id, name, prompt, output, model, time, start_time, end_time, image_detail, saved_image_data_base_string, total_input_characters, total_output_characters in cur.fetchall():
+                message = st.chat_message("user")
+                message.write(f":blue[{name}]") 
+                message.text(f"{prompt}")
+                message.caption(f"{time} | Input Characters: {total_input_characters}")
+                message = st.chat_message("assistant")
+                message.markdown(output)
+                message.caption(f"{time} | Model: {model} | Processing Time: {round(end_time-start_time, round_number)} seconds | Output Characters: {total_output_characters}")
 
-            col_A, col_B = st.columns([column_num_A, column_num_B])
 
-            with col_A:
-                
-                code_text = st.text_area("Code")
-                prompt_text = st.text_area("Prompt")
-                prompt = f"This is the code: \n\n {code_text} \n\n {prompt_text}"
-                button = st.button("Generate")
-                button_stream = st.button("Generate (Stream)")
-                details = st.toggle("Show details")
-                if details:
-                    st.info(f"""Total Code and Text Characters: {len(code_text + prompt_text)} 
-                            \n Code: {len(code_text)} 
-                            \n Text (Prompt): {len(prompt_text)}
-                            """)
-                reset = st.button(":blue[Reset]")
 
-            with col_B:
-                start = t.time()
-                with st.spinner("Generating..."):
-                    if prompt and button:
-                        response = mm_chat.send_message(prompt)
-                        st.info("Output in markdown \n")
-                        st.markdown(response.text)
-                        end = t.time()
-                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
-                    if prompt and button_stream:
-                        response_ = ""
-                        response = mm_chat.send_message(prompt, stream=True)
-                        st.info("Output streaming... \n")
-                        for chunk in response:
-                            st.write(chunk.text)
-                            response_ = response_ + chunk.text 
-                        st.info("Output in markdown \n")
-                        st.markdown(response_)
-                        end = t.time()
-                        st.caption(f"Total Processing Time: {round(end - start, round_number)}")
-                if reset:
-                    st.rerun()
-                
-        if apps == "GCP CLI Maker (One-Turn)":
+    if apps == "Code Analysis (One-Turn)":
 
-            info_sample_prompts = """
-                You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
-                * Command line to List down GCP Services
-                * Command line to create a bucket
-                * Command line to create a compute engine
-                """
-            st.info(info_sample_prompts)
+        info_sample_prompts = """
+            You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+            * What is this code about?
+            * How to optimize this code?
+            * Add comments
+            """
+        st.info(info_sample_prompts)
 
-            col_A, col_B = st.columns([column_num_A, column_num_B])
+        col_A, col_B = st.columns([column_num_A, column_num_B])
 
-            with col_A:
+        with col_A:
 
-                prompt = st.text_area("Prompt")
-                button = st.button("Generate")
-                button_stream = st.button("Generate (Stream)")
-                refresh = st.button("Refresh")
+            code_text = st.text_area("Code")
+            prompt_text = st.text_area("Prompt")
+            prompt = f"This is the code: \n\n {code_text} \n\n {prompt_text}"
+            button = st.button("Generate")
+            button_stream = st.button("Generate (Stream)")
+            details = st.toggle("Show details")
+            if details:
+                st.info(f"""Total Code and Text Characters: {len(code_text + prompt_text)} 
+                        \n Code: {len(code_text)} 
+                        \n Text (Prompt): {len(prompt_text)}
+                        """)
+            reset = st.button(":blue[Reset]")
 
-            with col_B:
-                start = t.time()
+        with col_B:
+            start = t.time()
+            with st.spinner("Generating..."):
                 if prompt and button:
-                    response = mm_chat.send_message(f"Write only the Google Cloud Command Line in code format markdown: {prompt}")
+                    response = mm_chat.send_message(prompt)
                     st.info("Output in markdown \n")
                     st.markdown(response.text)
-                    # st.text(mm_chat.history)
                     end = t.time()
-                    #st.caption(f"Total Processing Time: {end - start}")
+                    st.caption(f"Total Processing Time: {round(end - start, round_number)}")
                 if prompt and button_stream:
                     response_ = ""
                     response = mm_chat.send_message(prompt, stream=True)
@@ -321,17 +268,59 @@ def main():
                     st.info("Output in markdown \n")
                     st.markdown(response_)
                     end = t.time()
-                    # st.caption(f"Total Processing Time: {end - start}")
-                if refresh:
-                    st.rerun()
+                    st.caption(f"Total Processing Time: {round(end - start, round_number)}")
+            if reset:
+                st.rerun()
+
+    if apps == "GCP CLI Maker (One-Turn)":
+
+        info_sample_prompts = """
+            You can now start the conversation by prompting in the text bar. Enjoy. :smile: You can ask:
+            * Command line to List down GCP Services
+            * Command line to create a bucket
+            * Command line to create a compute engine
+            """
+        st.info(info_sample_prompts)
+
+        col_A, col_B = st.columns([column_num_A, column_num_B])
+
+        with col_A:
+
+            prompt = st.text_area("Prompt")
+            button = st.button("Generate")
+            button_stream = st.button("Generate (Stream)")
+            refresh = st.button("Refresh")
+
+        with col_B:
+            start = t.time()
+            if prompt and button:
+                response = mm_chat.send_message(f"Write only the Google Cloud Command Line in code format markdown: {prompt}")
+                st.info("Output in markdown \n")
+                st.markdown(response.text)
+                # st.text(mm_chat.history)
+                end = t.time()
+                #st.caption(f"Total Processing Time: {end - start}")
+            if prompt and button_stream:
+                response_ = ""
+                response = mm_chat.send_message(prompt, stream=True)
+                st.info("Output streaming... \n")
+                for chunk in response:
+                    st.write(chunk.text)
+                    response_ = response_ + chunk.text 
+                st.info("Output in markdown \n")
+                st.markdown(response_)
+                end = t.time()
+                # st.caption(f"Total Processing Time: {end - start}")
+            if refresh:
+                st.rerun()
                     
-        #------------------For Multimodal Guest Limits-----------------------#
-        if (GUEST == True and button) or (GUEST == True and button_streaming):
-            ### Insert into a database
-            SQL = "INSERT INTO toolkit_guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
-            data = (input_name, prompt_user, output, model, current_time, count_prompt)
-            cur.execute(SQL, data)
-            con.commit()
+    #------------------For Multimodal Guest Limits-----------------------#
+    if (GUEST == True and button) or (GUEST == True and button_streaming):
+        ### Insert into a database
+        SQL = "INSERT INTO toolkit_guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+        data = (input_name, user_prompt, output, current_model, current_time, count_prompt)
+        cur.execute(SQL, data)
+        con.commit()
 
                     
                     
@@ -352,7 +341,8 @@ if __name__ == '__main__':
             st.header("AI-Powered Cloud Toolkit", divider="rainbow")
             login = st.checkbox("Login")
             guest = st.checkbox("Continue as a guest")
-
+        
+        # Admin
         if login and not guest:
             with st.sidebar:
                 input_name = "Admin"
@@ -362,15 +352,21 @@ if __name__ == '__main__':
             if password == ADMIN_PASSWORD:
                 GUEST = False
                 main()
-                
+        
         if not login and not guest:
             st.info("Login or Continue as a guest to get started")
+            
         if login and guest:
             with st.sidebar:
                 st.info("Please choose only one")
+        
+        # Guest
         if not login and guest:
             with st.sidebar:
                 input_name = st.text_input("Username")
+                if input_name == "Admin" or input_name == "admin":
+                    st.info("Please use different username")
+                    input_name = ""
                 start = st.button("Let's go")
                 
             GUEST = True
