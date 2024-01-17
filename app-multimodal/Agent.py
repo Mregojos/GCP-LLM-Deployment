@@ -1268,8 +1268,8 @@ if __name__ == '__main__':
                     > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
                     > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
                     
-                    > :gray[For demonstration purposes only,     
-                    > to showcase the latest multimodal model capabilities.]
+                    >
+                    > For demonstration purposes only
                     ---
                     """)
 
