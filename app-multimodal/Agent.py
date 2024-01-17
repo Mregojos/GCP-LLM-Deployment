@@ -29,7 +29,8 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    layout="wide")
 
 #--------------Title----------------------#
-st.write("#### Multimodal Model Deployment")
+st.header("", divider = "rainbow")
+# st.write("#### Multimodal Agent (Chat)")
 
 #----------Connect to a database----------# 
 def connection():
@@ -127,6 +128,7 @@ def multimodal(con, cur):
     #------------------ Admin --------------------------#
     with st.sidebar:
         if GUEST == False:
+            st.divider()
             input_name = st.text_input("Name", default_name)
             #------------------- Saved Conversations -------------------#
             # topic_name = st.text_input("Create a topic or use saved conversation")
@@ -141,9 +143,12 @@ def multimodal(con, cur):
         # guest_time = t.strftime("%Y-%m-%d-%H")
         if GUEST == True:
             input_name = st.text_input("Username")
-            start_guest = st.button("Start the conversation")
+            # start_guest = st.toggle("**:violet[Start the conversation]**")
+            start_guest = st.button("**:violet[Start the conversation]**")
             if input_name == "" and start_guest:
                 st.info("Please input your username first")
+            if input_name:
+                st.divider()
             # input_name = st.text_input("Name", f"{default_name}")
             # input_name = st.text_input("Name", f"{default_name}-{guest_time}")
             if input_name == "Admin" or input_name == "admin":
@@ -167,7 +172,7 @@ def multimodal(con, cur):
     #------------------ Info and Sample prompts  --------------------------#
     # if GUEST == False or (GUEST == True and total_count < LIMIT):
     info_sample_prompts = """
-                You can now start the conversation by prompting in the text bar. :smile: You can ask:
+                You can now start the conversation by prompting in the text bar. You can ask:
                 * List the things you are capable of doing 
                 * What is Cloud Computing? Explain it at different levels, such as beginner, intermediate, and advanced
                 * What is Google Cloud? Important Google Cloud Services to know
@@ -1230,8 +1235,9 @@ if __name__ == '__main__':
             with st.sidebar:
                 username = st.text_input("Username", "Admin")
                 password = st.text_input("Password", type="password")
-                agent = st.toggle("**:violet[Start the conversation]**")
-            if password == ADMIN_PASSWORD and agent:
+                # agent = st.toggle("**:violet[Start the conversation]**")
+                agent = st.button("**:violet[Start the conversation]**")
+            if password == ADMIN_PASSWORD:
                 default_name = "Admin"
                 GUEST = False
                 guest_limit = False
