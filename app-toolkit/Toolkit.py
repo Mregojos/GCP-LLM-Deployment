@@ -28,7 +28,7 @@ st.set_page_config(page_title="Matt Cloud Tech",
                    layout="wide")
 
 #--------------Title----------------------#
-st.write("#### AI-Powered Toolkit for Cloud and Tech Professional")
+st.header("", divider="rainbow")
 
 #----------Connect to a database----------# 
 def connection():
@@ -43,8 +43,12 @@ def connection():
     # Create a table if not exists
     
     # Multimodal
-    # cur.execute("DROP TABLE multimodal")
-    cur.execute("CREATE TABLE IF NOT EXISTS multimodal(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
+    # cur.execute("DROP TABLE <TABLE_NAME>")
+    cur.execute("CREATE TABLE IF NOT EXISTS toolkit_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
+    cur.execute("CREATE TABLE IF NOT EXISTS guest_toolkit_db(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, start_time float, end_time float, image_detail varchar, saved_image_data_base_string varchar, total_input_characters int, total_output_characters int)")
+    
+    # Guest Limit
+    cur.execute("CREATE TABLE IF NOT EXISTS toolkit_guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     
     con.commit()
     return con, cur
@@ -65,22 +69,23 @@ def main():
     # Connection
     con = False
     mm_model, mm_chat = models()
-    input_name = "Admin"
     column_num_A = 1.5
     column_num_B = 2
     round_number = 2
     limit_query = 1
     info_sample_prompts = """
-                        You can now start the conversation by prompting in the text bar. :smile: You can ask:
-                        * List down the things you can do 
-                        * What is Cloud Computing?
+                        You can now start the conversation by prompting in the text bar. You can ask:
+                        * List the things you are capable of doing 
+                        * What is Cloud Computing? Explain it at different levels, such as beginner, intermediate, and advanced
                         * What is Google Cloud? Important Google Cloud Services to know
                         * Compare Site Reliability Engineering with DevOps
                         * Tell me about different cloud services
-                        * Explain Cloud Computing in simple terms
+                        * Explain Multimodal Model in simple terms
                         """
     current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
     prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
+    prompt_user = input_name
+    button_streaming = False
     
     try:
         con, cur = connection()
@@ -92,7 +97,7 @@ def main():
         # Connection
         con, cur = connection()
         
-        apps = st.selectbox("Toolkit", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
+        apps = st.selectbox("Choose a tool", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
         
         if apps == "Text Only (One-Turn)":
             st.info(info_sample_prompts)
@@ -103,7 +108,7 @@ def main():
 
                 prompt = st.text_area("Prompt")
                 button = st.button("Generate")
-                button_stream = st.button("Generate (Streaming)")
+                button_streaming = st.button("Generate (Streaming)")
                 reset = st.button(":blue[Reset]")
                 # button_multi_turn = st.button("Generate (Multi-Turn)")
 
@@ -119,7 +124,7 @@ def main():
                         # st.text(mm_chat.history)
                         end = t.time()
                         st.caption(f"Total Processing Time: {round(end - start, round_number)}")
-                if prompt and button_stream:
+                if prompt and button_streaming:
                     with st.spinner("Generating..."):
                         response_ = ""
                         response = mm_model.generate_content(prompt, stream=True)
@@ -154,7 +159,7 @@ def main():
                     st.rerun()
                 prune = st.button(":red[Prune History]")
                 if prune:
-                    cur.execute("DROP TABLE multimodal")
+                    cur.execute("DROP TABLE toolkit_db")
                     con.commit()
                     st.info("Done")
                     st.rerun()
@@ -167,7 +172,7 @@ def main():
                     current_start_time = t.time() 
                     cur.execute(f"""
                             SELECT * 
-                            FROM multimodal
+                            FROM toolkit_db
                             WHERE name='{input_name}'
                             ORDER BY time ASC
                             """)                    
@@ -188,7 +193,7 @@ def main():
                     output_characters = len(output)
                     characters = len(prompt_user)
                     end_time = t.time() 
-                    SQL = "INSERT INTO multimodal (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                    SQL = "INSERT INTO toolkit_db (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                     data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
                     cur.execute(SQL, data)
                     con.commit() 
@@ -197,7 +202,7 @@ def main():
                 with st.expander("Past Conversations"):
                     cur.execute(f"""
                     SELECT * 
-                    FROM multimodal
+                    FROM toolkit_db
                     WHERE name='{input_name}'
                     ORDER BY time ASC
                     """)
@@ -212,7 +217,7 @@ def main():
 
                 cur.execute(f"""
                 SELECT * 
-                FROM multimodal
+                FROM toolkit_db
                 WHERE name='{input_name}'
                 ORDER BY time DESC
                 LIMIT {limit_query}
@@ -319,47 +324,107 @@ def main():
                     # st.caption(f"Total Processing Time: {end - start}")
                 if refresh:
                     st.rerun()
-
+                    
+        #------------------For Multimodal Guest Limits-----------------------#
+        if (GUEST == True and button) or (GUEST == True and button_streaming):
+            ### Insert into a database
+            SQL = "INSERT INTO toolkit_guest_chats (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+            data = (input_name, prompt_user, output, model, current_time, count_prompt)
+            cur.execute(SQL, data)
+            con.commit()
 
                     
                     
 #----------Execution----------#
 if __name__ == '__main__':
-    
-    with st.sidebar:
-        st.info(":violet[AI-Powered Toolkit]")
-        login = st.checkbox("Login")
-        guest = st.checkbox("Continue as a guest")
-        
-    if login and not guest:
+
+    # Connection
+    con = False
+    try:
+        con, cur = connection()
+        con = True
+    except:
+        st.info("##### :computer: ```DATABASE CONNECTION: The app can't connect to the database right now. Please try again later.```")
+    if con == True:
+        con, cur = connection()
+
         with st.sidebar:
-            password = st.text_input("Password", type="password")
-            st.button("Stay login")
-        if password == ADMIN_PASSWORD:
-            main()
-    if login and guest:
-        with st.sidebar:
-            st.info("Please choose only one")
-    if not login and guest:
-        with st.sidebar:
-            guest_limit = st.button("Show Guest Limit")
-            if guest_limit:
-                st.info("Guest Daily Limit Left: ")
-        
-        # More than the Guest Limit
-        
-        # Less than the Guest Limit
-        main()
-        
-    
-    #----------Footer----------#
-    #----------Sidebar Footer----------#
-    with st.sidebar:
-        st.markdown("""
-                    ---
-                    > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
-                    > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
-                    
-                    > :gray[For demonstration purposes only]
-                    ---
+            st.header("AI-Powered Cloud Toolkit", divider="rainbow")
+            login = st.checkbox("Login")
+            guest = st.checkbox("Continue as a guest")
+
+        if login and not guest:
+            with st.sidebar:
+                input_name = "Admin"
+                input_name = st.text_input("Username", input_name)
+                password = st.text_input("Password", type="password")
+                st.button("Login")
+            if password == ADMIN_PASSWORD:
+                GUEST = False
+                main()
+                
+        if not login and not guest:
+            st.info("Login or Continue as a guest to get started")
+        if login and guest:
+            with st.sidebar:
+                st.info("Please choose only one")
+        if not login and guest:
+            with st.sidebar:
+                input_name = st.text_input("Username")
+                start = st.button("Let's go")
+                
+            GUEST = True
+            # Guest Limit
+            LIMIT = 30
+            time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+            time_date = time[0:15]
+            cur.execute(f"""
+                    SELECT SUM(count_prompt)
+                    FROM toolkit_guest_chats
+                    WHERE time LIKE '{time_date}%'
                     """)
+            for total in cur.fetchone():
+                if total is None:
+                    total_count = 0
+                else:
+                    total_count = total
+
+            with st.sidebar:
+                guest_limit = st.checkbox("Show Guest Limit")
+                if guest_limit:
+                    st.info(f"Guest Daily Limit Left: {LIMIT - total_count}")
+
+
+                    # st.write(total_count)
+
+            # More than the Guest Limit
+            #------------------ Guest limit --------------------------#
+            if GUEST == True and total_count >= LIMIT:
+                with st.sidebar:
+                    st.info("Guest daily limit has been reached.")
+
+                    # If the limit is reached, this will automatically delete all Guest prompt history. Note: "multimodal_guest_chats" is not included.
+                    guest_DB = ["guest_toolkit_db"]
+                    for DB in guest_DB:
+                        cur.execute(f"DROP TABLE {DB}")
+                    con.commit()
+
+                st.info("Guest daily limit has been reached.")
+
+            # Less than the Guest Limit
+            #------------------ Guest limit --------------------------#
+            if GUEST == True and total_count < LIMIT and input_name:
+                main()
+        
+    
+#----------Footer----------#
+#----------Sidebar Footer----------#
+with st.sidebar:
+    st.markdown("""
+                ---
+                > :gray[:copyright: Portfolio Website by [Matt R.](https://github.com/mregojos)]            
+                > :gray[:cloud: Deployed on [Google Cloud](https://cloud.google.com)]
+
+                > For demonstration purposes only
+                ---
+                """)
