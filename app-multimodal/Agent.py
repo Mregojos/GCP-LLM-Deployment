@@ -394,8 +394,8 @@ def multimodal(con, cur):
                                     output = response.text
                         except:
                             output = prompt_error
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time() 
 
                 response = ""
@@ -419,7 +419,7 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                    input_characters = len(prompt_user)
+                    input_characters = len("".join(prompt_user.split()))
 
                 refresh = st.button(":blue[Reset]")
                 if refresh:
@@ -651,11 +651,11 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                        output_characters = len(output)
-                        characters = len(prompt_user)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time() 
                         SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
                         cur.execute(SQL, data)
                         con.commit() 
 
@@ -682,9 +682,8 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                        characters = len(old_prompt_history + prompt_user)
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time()
                         SQL = "INSERT INTO chats (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
@@ -809,8 +808,8 @@ def multimodal(con, cur):
                                 output = response.text
                         except:
                             output = prompt_error
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time() 
 
                 response_ = ""
@@ -830,7 +829,7 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                    input_characters = len(prompt_user)
+                    input_characters = len("".join(prompt_user.split()))
 
                 refresh = st.button(":blue[Reset]")
                 if refresh:
@@ -902,11 +901,11 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                        output_characters = len(output)
-                        characters = len(prompt_user)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time() 
                         SQL = "INSERT INTO chats_mm (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
-                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, characters, output_characters)
+                        data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
                         cur.execute(SQL, data)
                         con.commit() 
 
@@ -981,9 +980,8 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                        characters = len(prompt_history + prompt_user)
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time()
                         SQL = "INSERT INTO chats (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
@@ -1043,9 +1041,8 @@ def multimodal(con, cur):
                         except:
                             output = prompt_error
 
-                        characters = len(prompt_history + prompt_user)
-                        input_characters = len(prompt_user)
-                        output_characters = len(output)
+                        input_characters = len("".join(prompt_user.split()))
+                        output_characters = len("".join(output.split()))
                         end_time = t.time()
                         SQL = "INSERT INTO chats (name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                         data = (input_name, prompt_user, output, current_model, current_time, current_start_time, end_time, input_characters, output_characters)
