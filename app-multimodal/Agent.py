@@ -146,7 +146,7 @@ def multimodal(con, cur):
                 st.info("Please input your username first")
             # input_name = st.text_input("Name", f"{default_name}")
             # input_name = st.text_input("Name", f"{default_name}-{guest_time}")
-            if input_name == "Admin":
+            if input_name == "Admin" or input_name == "admin":
                 input_name = ""
                 st.info("Please use different username.")
     LIMIT = 30
