@@ -118,6 +118,7 @@ def multimodal(con, cur):
     current_model = ""
     prompt_character_limit = 5000 # Only Applicable to Guest
     prompt_character_limit_text = f""":red[CHARACTER LIMIT]: Exceeds the prompt character limit of :blue[{prompt_character_limit}]""" 
+    current_model = ""
     sleep_time = 1
     limit_query = 1
     id_num = 1
@@ -177,21 +178,13 @@ def multimodal(con, cur):
     vision_info_ = """
                 You can now upload an image to analyze.
                 """
-    
-    with st.sidebar:
 
-
-        #------------------ prompt_info ------------------#
-        prompt_history = ""
-        
-        vision_info = f":violet[{model}] analyzes the photo you uploaded."
-        vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
-        chat_latest_old_info = f":violet[{model}] compares the latest model to the old model."
-        
-        prompt_prune_info = f"{input_name}'s prompts and output data have successfully been deleted."
-        prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
-        prompt_user_chat_ = "What do you want to talk about?"
-
+    #------------------ prompt_info ------------------#
+    prompt_history = ""
+    prompt_prune_info = f"{input_name}'s prompts and output data have successfully been deleted."
+    prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
+    prompt_user_chat_ = "What do you want to talk about?"
+ 
     #------------------ Guest limit --------------------------#
     if GUEST == True and total_count >= LIMIT:
         with st.sidebar:
@@ -217,6 +210,8 @@ def multimodal(con, cur):
                 current_image_detail = ""
                 image_data_base_string = ""
                 current_time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+                vision_info = f":violet[{model}] analyzes the photo you uploaded."
+                vision_db_info = f":violet[{model}] analyzes the photo you uploaded and saves to the database. This model does not have chat capability."
             
         if model == "Multimodal (Multi-Turn)":
             current_model = "Multimodal (Multi-Turn)"
@@ -642,7 +637,7 @@ def multimodal(con, cur):
                                 ORDER BY time ASC
                                 """)                    
                         try:
-                            with st.spinner("Generating..."):
+                            with st.spinner("Generating (Latest Model)..."):
                                 for id, name, prompt, output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                                     prompt_history = prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {prompt}" + f"\n\n Model: {output}"
 
@@ -673,7 +668,7 @@ def multimodal(con, cur):
                                 ORDER BY time ASC
                                 """) 
                         try:
-                            with st.spinner("Generating..."):
+                            with st.spinner("Generating (Older Model)..."):
                                 for id, name, old_prompt, old_output, model, time, start_time, end_time, total_input_characters, total_output_characters in cur.fetchall():
                                     old_prompt_history = old_prompt_history + f"\n\n Prompt ID: {id}" +  f"\n\n User: {old_prompt}" + f"\n\n Model: {old_output}"
 
@@ -695,8 +690,6 @@ def multimodal(con, cur):
                         cur.execute(SQL, data)
                         con.commit()
 
-                st.info(chat_latest_old_info)
-
                 refresh = st.button(":blue[Reset]")
                 if refresh:
                     st.rerun()
@@ -717,7 +710,7 @@ def multimodal(con, cur):
             with col_A:
                 #-------------------Chat Text Only Latest Version---------------------#
                 st.info("Latest Model") 
-                with st.expander("Latest Version Past Conversations"):
+                with st.expander("Latest Model Past Conversations"):
                     cur.execute(f"""
                     SELECT * 
                     FROM chats_mm
@@ -754,7 +747,7 @@ def multimodal(con, cur):
             with col_B:
                 #-------------------Chat Only Old Version---------------------#
                 st.info("Old Model") 
-                with st.expander("Old Version Past Conversations"):
+                with st.expander("Old Model Past Conversations"):
                     cur.execute(f"""
                     SELECT * 
                     FROM chats
@@ -837,8 +830,6 @@ def multimodal(con, cur):
                             output = prompt_error
 
                     input_characters = len(prompt_user)
-
-                # st.info(multimodal_info)
 
                 refresh = st.button(":blue[Reset]")
                 if refresh:
@@ -1217,7 +1208,7 @@ if __name__ == '__main__':
         con, cur = connection()
         mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, text_model, code_model  = models()
         with st.sidebar:
-            st.header(":brain: Multimodal Agent :computer: ",divider="rainbow")
+            st.header(":brain: Multimodal Agent ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
             st.write(f"Multimodal model can generate text, code, analyze images, and more.")
             st.write("""
@@ -1239,6 +1230,7 @@ if __name__ == '__main__':
                 st.info("Choose only one")
         elif login:
             with st.sidebar:
+                username = st.text_input("Username", "Admin")
                 password = st.text_input("Password", type="password")
                 agent = st.toggle("**:violet[Start the conversation]**")
             if password == ADMIN_PASSWORD and agent:
