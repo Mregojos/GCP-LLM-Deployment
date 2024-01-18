@@ -50,6 +50,13 @@ def connection():
     # Guest Limit
     cur.execute("CREATE TABLE IF NOT EXISTS toolkit_guest_chats(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
     
+    # Total Prompts
+    # cur.execute("DROP TABLE total_prompts")
+    cur.execute("CREATE TABLE IF NOT EXISTS total_prompts(id serial PRIMARY KEY, name varchar, prompt varchar, output varchar, model varchar, time varchar, count_prompt int)")
+
+    # Counter
+    cur.execute("CREATE TABLE IF NOT EXISTS chat_view_counter(id serial PRIMARY KEY, view int, time varchar)")
+    
     con.commit()
     return con, cur
 
@@ -85,6 +92,7 @@ def main():
     prompt_error = "Sorry about that. Please prompt it again, prune the history, or change the model if the issue persists."
     button_streaming = False
     output = ""
+    sleep_time = 1
     
     apps = st.selectbox("Choose a tool", ["Text Only (One-Turn)", "Text Only (Multi-Turn)", "Code Analysis (One-Turn)", "GCP CLI Maker (One-Turn)"])
 
@@ -148,9 +156,14 @@ def main():
                 st.rerun()
             prune = st.button(":red[Prune History]")
             if prune:
-                cur.execute("DROP TABLE toolkit_db")
-                st.info(f"Data was successfully deleted.")
+                cur.execute(f"""
+                            DELETE  
+                            FROM toolkit_db
+                            WHERE name='{input_name}'
+                            """)
                 con.commit()
+                st.info(f"Data was successfully deleted.")
+                t.sleep(sleep_time)
                 st.rerun()
 
 
@@ -322,7 +335,13 @@ def main():
         cur.execute(SQL, data)
         con.commit()
 
-                    
+    #---------------- Insert into a table (total_prompts) ----------------#
+    if button or button_streaming:
+        SQL = "INSERT INTO total_prompts (name, prompt, output, model, time, count_prompt) VALUES(%s, %s, %s, %s, %s, %s);"
+        data = (input_name, user_prompt, output, current_model, current_time, count_prompt)
+        cur.execute(SQL, data)
+        con.commit()
+
                     
 #----------Execution----------#
 if __name__ == '__main__':
@@ -349,13 +368,91 @@ if __name__ == '__main__':
                 input_name = st.text_input("Username", input_name)
                 password = st.text_input("Password", type="password")
                 st.button("Login")
+                                        
             if password == ADMIN_PASSWORD:
                 GUEST = False
                 main()
         
+                # Prompt History
+                with st.sidebar:
+                    prompt_history = st.checkbox("Prompt History")
+                    if prompt_history:
+                        # Prune All
+                        prune_all = st.button(":red[Prune All]")
+
+                        # Guest Limit
+                        prune_multimodal_guest_chats = st.button(":red[Prune Guest Limit]")
+                        if prune_multimodal_guest_chats or prune_all:
+                            cur.execute("DROP TABLE toolkit_guest_chats")
+                            st.info(f"Guest Limit was successfully deleted.")
+                            con.commit()
+
+                        # All Guest and Admin DB
+                        prune_db = st.button(":red[Prune Guest and Admin DB]")
+                        if prune_db or prune_all:
+                            admin_DB = ["toolkit_db"]
+                            for DB in admin_DB:
+                                cur.execute(f"DROP TABLE {DB}")
+                            con.commit()
+                            st.info(f"Database was successfully deleted.")
+
+                        # Prune Total Prompts
+                        prune_total_prompts = st.button(":red[Prune Total Prompts DB]")
+                        if prune_total_prompts or prune_all:
+                            cur.execute("DROP TABLE total_prompts")
+                            st.info(f"Total Prompts DB was successfully deleted.")
+                            con.commit()
+
+                        # Prune Chat View Counter
+                        prune_chat_view_counter = st.button(":red[Prune Chat View Counter DB]")
+                        if prune_chat_view_counter or prune_all:
+                            cur.execute("DROP TABLE chat_view_counter")
+                            st.info(f"Chat View Counter DB was successfully deleted.")
+                            con.commit()
+                            st.rerun()
+                            
+                    counter = st.checkbox("Counter")
+                    if counter:
+                        st.header("Counter")
+                        st.caption("""
+                                    Count every request in this app.
+                                    """)
+                        st.subheader("",divider="rainbow")
+                        # Total views
+                        cur.execute("""
+                                    SELECT SUM(view) 
+                                    FROM chat_view_counter
+                                    """)
+                        st.write(f"#### Total views: **{cur.fetchone()[0]}**")
+                        # Current view
+                        time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+                        st.write(f"Current: {time}")
+                        # Total views today
+                        time_date = time[0:15]
+                        cur.execute(f"""
+                                    SELECT SUM(view) 
+                                    FROM chat_view_counter
+                                    WHERE time LIKE '{time_date}%'
+                                    """)
+                        st.write(f"#### Total views today: **{cur.fetchone()[0]}**")
+                        st.divider()
+                        # Previous views
+                        views = st.checkbox("See Previous Views")
+                        if views:
+                            st.write("**Previous Views**")
+                            cur.execute("""
+                                        SELECT * 
+                                        FROM chat_view_counter
+                                        ORDER BY time DESC
+                                        """)
+                            for _, _, time in cur.fetchall():
+                                st.caption(f"{time}")
+                        
+        # Unchecked box
         if not login and not guest:
             st.info("Login or Continue as a guest to get started")
-            
+        
+        # Checked box
         if login and guest:
             with st.sidebar:
                 st.info("Please choose only one")
@@ -411,7 +508,14 @@ if __name__ == '__main__':
             #------------------ Guest limit --------------------------#
             if GUEST == True and total_count < LIMIT and input_name:
                 main()
-        
+
+        # Chat View Counter
+        time = t.strftime("Date: %Y-%m-%d | Time: %H:%M:%S UTC")
+        view = 1
+        SQL = "INSERT INTO chat_view_counter (view, time) VALUES(%s, %s);"
+        data = (view, time)
+        cur.execute(SQL, data)
+        con.commit()
     
 #----------Footer----------#
 #----------Sidebar Footer----------#
