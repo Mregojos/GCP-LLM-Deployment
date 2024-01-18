@@ -1211,7 +1211,7 @@ if __name__ == '__main__':
         con, cur = connection()
         mm_model, mm_config, mm_chat, multimodal_model, multimodal_generation_config, text_model, code_model  = models()
         with st.sidebar:
-            st.header(":brain: Multimodal Agent ",divider="rainbow")
+            st.header(":star: Multimodal Agent :brain: ",divider="rainbow")
             # st.caption("## Multimodal Chat Agent")
             st.write(f"Multimodal model can generate text, code, analyze images, and more.")
             st.write("""

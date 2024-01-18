@@ -338,7 +338,7 @@ if __name__ == '__main__':
         con, cur = connection()
 
         with st.sidebar:
-            st.header("AI-Powered Cloud Toolkit", divider="rainbow")
+            st.header(":star: AI-Powered Cloud Toolkit :toolbox:", divider="rainbow")
             login = st.checkbox("Login")
             guest = st.checkbox("Continue as a guest")
         
