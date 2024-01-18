@@ -89,9 +89,9 @@ sh app-cli-cleanup.sh
 ---
 ## Screenshot (Multimodal Agent / Chatbot)
 
-![Screenshot](image/Screenshot-ii.png)
+![Screenshot](images/Screenshot-ii.png)
 
-<img src="image/Screenshot-iii.png" width="" height="">
+<img src="images/Screenshot-iii.png" width="" height="">
 
 
 ---
