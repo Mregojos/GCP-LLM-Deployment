@@ -1,20 +1,20 @@
-# Multimodal Model Deployment
+# Generative AI (Multimodal Model) Deployment
 * Check out the deployed web app here: https://mattcloudtech.com/Agent
 
 ## Overview
-* This project demonstrates how to build, deploy, and test a web app using a multimodal model.
+* This project demonstrates how to build, deploy, and test web apps with Generative AI (Multimodal Model).
 
 ---
 ## Objective
+* To develop web apps and cli with Generative AI (multimodal model)
 * To evaluate the capabilities of the new multimodal model
-* To develop web apps and cli using the multimodal model
 * To integrate a database for storing prompts and output history
-* To deploy the new multimodal model using Google Cloud services
+* To deploy the web app using Google Cloud services
 
 ---
 ## Multimodal
-* What are Multimodal Models?
-    - Multimodal Models are capable of understanding and generating text, code, images, videos, and more.
+* What is Generative AI (Multimodal Model)?
+    - Generative AI (Multimodal Model) is capable of understanding and generating text, code, images, videos, and more.
 
 ---
 ## Tech Stack
@@ -72,14 +72,14 @@ make run_dev_cleanup
 
 ```
 
-### For AI-Powered Toolkit for Cloud and Tech and Multimodal in Terminal (CLI)
+### For AI-Powered Cloud Toolkit and Generative AI (Multimodal Model) in Terminal (CLI)
 ```sh
-# AI-Powered Toolkit for Cloud and Tech
+# AI-Powered Cloud Toolkit 
 sh app-toolkit.sh 
 # Cleanup
 sh app-toolkit-cleanup.sh
 
-# Using Multimodal in Terminal (CLI)
+# Generative AI (Multimodal Model) in Terminal (CLI)
 cd app-cli
 # README.md
 # Cleanup
@@ -96,8 +96,9 @@ sh app-cli-cleanup.sh
 
 ---
 ## Resources
-* Multimodal Model Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
-* Deployed Web App: https://mattcloudtech.com/Agent
+* Generative AI (Multimodal Model) Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
+* Deployed (Chatbot) Web App: https://mattcloudtech.com/Agent
+* Deployed (Cloud Toolkit) Web App: https://mattcloudtech.com/Toolkit
 * Model Deployment Web App Repository: https://github.com/mregojos/model-deployment
 * Google Cloud Vertex AI https://cloud.google.com/vertex-ai 
 
