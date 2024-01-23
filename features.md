@@ -38,4 +38,11 @@
     [X] Scripting
     [X] Chat Capability
     [X] Saved Prompts and Outputs (.md)
+
+## Testing
+    [] Integration test
+    [] Security Test
+    [] Unit Test
+    [] Load test
+    
     
