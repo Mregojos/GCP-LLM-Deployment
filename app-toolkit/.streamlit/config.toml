@@ -1,7 +1,7 @@
 [client]
 showErrorDetails = false
 showSidebarNavigation = false
-caching = false
+# caching = false
 
 [browser]
 gatherUsageStats = false
@@ -20,5 +20,5 @@ hideTopBar = true
 [logger]
 level = "error"
 
-# [server]
+[server]
 # fileWatcherType = "none"
