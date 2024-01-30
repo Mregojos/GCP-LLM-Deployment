@@ -1,5 +1,5 @@
 # Generative AI (Multimodal Model) Deployment
-* Check out the deployed web app here: https://mattcloudtech.com/Agent
+* Check out the deployed web app here: https://www.mattcloudtech.com/Agent or https://app.mattcloudtech.com/Agent
 
 ## Overview
 * This project demonstrates how to build, deploy, and test web apps with Generative AI (Multimodal Model).
@@ -97,8 +97,8 @@ sh app-cli-cleanup.sh
 ---
 ## Resources
 * Generative AI (Multimodal Model) Deployment Repository: https://github.com/mregojos/GCP-LLM-Deployment
-* Deployed (Chatbot) Web App: https://mattcloudtech.com/Agent
-* Deployed (Cloud Toolkit) Web App: https://mattcloudtech.com/Toolkit
+* Deployed (Chatbot) Web App: https://www.mattcloudtech.com/Agent or https://app.mattcloudtech.com/Agent
+* Deployed (Cloud Toolkit) Web App: https://www.mattcloudtech.com/Toolkit or https://app.mattcloudtech.com/Toolkit
 * Model Deployment Web App Repository: https://github.com/mregojos/model-deployment
 * Infrastructure Automation on GCP: https://github.com/mregojos/Infrastructure-Automation-GCP
 * Google Cloud Vertex AI https://cloud.google.com/vertex-ai 
