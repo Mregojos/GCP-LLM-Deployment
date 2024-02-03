@@ -47,6 +47,8 @@
     [X] Scripting
     [X] Chat Capability
     [X] Saved Prompts and Outputs (.md)
+    
+### Image Generation
 
 ## Testing
     [] Integration test
