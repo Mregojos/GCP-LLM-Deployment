@@ -12,6 +12,7 @@
     [] Model Tuning
     [] Signup
     [] Saved Conversations
+    [] Admin Page
     
 ### Toolkit
     [X] Deployed Web App
@@ -26,11 +27,19 @@
     [] Model Tuning
     [] Signup
     [] Saved Conversations
-    [] Cloud Engineering Tools
-    [] Cloud Architecture Tools
-    [] DevOps Tools
-    [] SRE Tools
-    [] Data Engineering Tools
+    * Cloud Engineering Tools
+      [] IaC Maker
+      [] File Checker
+    * Cloud Architecture Tools
+      [] Architecture Framework
+    * DevOps Tools
+      [] Container File Maker
+      [] Manifest Maker
+      [] Pipeline Maker
+    * SRE Tools
+      [] Service Level Models 
+    * Data Engineering Tools
+      [] Data Processing
     [] ML Tools
     
 ### CLI
@@ -45,4 +54,11 @@
     [] Unit Test
     [] Load test
     
+## Architecture Framework
+    [] System Design
+    [] Cost Optimization
+    [] Operational Excellence
+    [] Reliability
+    [] Performance Optimization
+    [] Security, Privacy, and Compliance
     
